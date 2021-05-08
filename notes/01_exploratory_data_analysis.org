@@ -1,6 +1,23 @@
 In this chapter, Allen Downey introduces the statistic data in Stata dictionary
 format. Thus we need to decode the data in Clojure firstly.
 
+Get the data from CDC:
+
+#+begin_src clojure :results pp :exports both
+(require '[clj-http.client :as client])
+(require '[clojure.java.io :as io])
+(require '[clojure.string :as str])
+
+(defn fetch-data! [url]
+  (let [req (client/get url {:as :byte-array :throw-exceptions false})]
+    (if (= (:status req) 200)
+      (-> (:body req)
+          (io/copy (io/file "resources" (last (str/split url #"/"))))))))
+
+(fetch-data! "https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NSFG/stata/2002FemPreg.dct")
+(fetch-data! "https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NSFG/2002FemPreg.dat")
+#+end_src
+
 Ray Miller already did this work, so let's reuse it [fn:1].
 
 The format of a ~.dct~ file looks like this:
@@ -15,7 +32,6 @@ infile dictionary {
 It is easy to extract lines with regex:
 
 #+begin_src clojure :results pp :exports both
-(require '[clojure.java.io :as io])
 (def dict-line-rx #"^\s+_column\((\d+)\)\s+(\S+)\s+(\S+)\s+%(\d+)(\S)\s+\"([^\"]+)\"")
 (def line (with-open [r (io/reader "resources/2002FemPreg.dct")]
             (first (rest (line-seq r)))))
@@ -99,7 +115,324 @@ line
 : 243
 :
 
+#+begin_src clojure :results pp :exports both
+(defn parse-value
+  [type raw-value]
+  (when (not (empty? raw-value))
+    (case type
+      ("str12")          raw-value
+      ("byte" "int")     (Long/parseLong raw-value)
+      ("float" "double") (Double/parseDouble raw-value))))
+#+end_src
 
+#+RESULTS:
+: #'user/parse-value
+:
+
+#+begin_src clojure :results pp :exports both
+(defn make-row-parser
+  "Parse a row from a Stata data file according to the specification in `dict`.
+   Return a vector of columns."
+  [dict]
+  (fn [row]
+    (reduce (fn [accum {:keys [col type name f-len]}]
+              (let [raw-value (str/trim (subs row col (+ col f-len)))]
+                (conj accum (parse-value type raw-value))))
+            []
+            dict)))
+#+end_src
+
+#+RESULTS:
+: #'user/make-row-parser
+:
+
+#+begin_src clojure :results pp :exports both
+(import 'java.util.zip.GZIPInputStream)
+(defn reader
+  "Open path with io/reader; coerce to a GZIPInputStream if suffix is .gz"
+  [path]
+  (if (.endsWith path ".gz")
+    (io/reader (GZIPInputStream. (io/input-stream path)))
+    (io/reader path)))
+#+end_src
+
+#+RESULTS:
+: #'user/reader
+:
+
+#+begin_src clojure :results pp :exports both
+(defn read-dct-data
+  "Parse lines from `rdr` according to the specification in `dict`.
+   Return a lazy sequence of parsed rows."
+  [dict rdr]
+  (let [parse-fn (make-row-parser dict)]
+    (map parse-fn (line-seq rdr))))
+#+end_src
+
+#+RESULTS:
+: #'user/read-dct-data
+:
+
+#+begin_src clojure :results pp :exports both
+(defn as-dataset
+  "Read Stata data set, return an Incanter dataset."
+  [dict-path data-path]
+  (let [dict   (read-dict-defn dict-path)
+        header (map (comp keyword :name) dict)]
+    (with-open [r (reader data-path)]
+      (first (doall (read-dct-data dict r))))))
+
+
+(as-dataset "resources/2002FemPreg.dct" "resources/2002FemPreg.dat")
+#+end_src
+
+#+RESULTS:
+#+begin_example
+["1"
+ 1
+
+
+
+
+ 6
+
+ 1
+
+
+ 1
+ 1093
+
+ 1084
+
+
+ 9
+ 0
+ 39
+ 9
+
+
+
+ 0
+
+
+ 1
+ 8
+ 13
+
+
+
+
+
+
+
+
+
+ 1093
+ 138
+ 37
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 1
+
+
+
+
+
+
+
+
+ 5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 1166
+ 1093
+ 1166
+ 920
+ 1093
+
+
+
+
+ 1
+ 1
+ 1
+
+
+
+
+
+
+
+
+
+ 3
+
+
+ 1
+
+
+ 1
+ 2
+
+
+ 1
+ 1
+
+
+
+
+
+
+
+ 5
+ 39
+ 1
+ 1
+ 1093
+ 3316
+ 1084
+ 3241
+ 1
+ 2
+ 1
+ 1
+
+
+
+ 2
+ 995
+
+ 1
+ 2
+ 1
+ 2
+ 695
+ 44
+ 44
+ 1
+ 1
+ 16
+ 12
+ 2
+ 2
+ 2
+ 2
+ 2
+ 2
+ 2
+ 2
+ 469
+ 3
+ 2
+ 1
+ 5
+
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 3410.3893993529427
+ 3869.3496019830486
+ 6448.271111704751
+ 2
+ 9
+ 1231]
+
+#+end_example
 
 * Footnotes
 
