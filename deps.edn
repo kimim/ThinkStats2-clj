@@ -3,4 +3,5 @@
            {:main-opts ["-m" "thinkstats2.core"]}}
 
  :deps {techascent/tech.ml.dataset      {:mvn/version "6.00-beta-7"}
-        clj-http/clj-http               {:mvn/version "3.12.0"}}}
+        clj-http/clj-http               {:mvn/version "3.12.0"}
+        scicloj/tablecloth              {:mvn/version "6.00-beta-7"}}}

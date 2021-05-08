@@ -10,7 +10,8 @@ We'll put all the needed namespaces in the begining:
   (:require [clj-http.client :as client]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [tech.v3.dataset :as ds])
+            [tech.v3.dataset :as ds]
+            [tablecloth.api :as api])
   (:import java.util.zip.GZIPInputStream))
 #+end_src
 
@@ -61,6 +62,7 @@ line
 
 #+RESULTS:
 : "    _column(1)      str12                             caseid  %12s  \"RESPONDENT ID NUMBER\""
+:
 
 #+begin_src clojure :results pp :exports both
 (re-find dict-line-rx line)
@@ -74,6 +76,7 @@ line
 :  "12"
 :  "s"
 :  "RESPONDENT ID NUMBER"]
+:
 
 Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
@@ -92,6 +95,7 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : #'thinkstats2.exploratory-data-analaysis/parse-dict-line
+:
 
 #+begin_src clojure :results pp :exports both
 (parse-dict-line line)
@@ -104,6 +108,7 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 :  :f-len 12,
 :  :f-spec "s",
 :  :descr "RESPONDENT ID NUMBER"}
+:
 
 
 
@@ -154,6 +159,7 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
   :f-len 2,
   :f-spec "f",
   :descr "PREGNANCY ORDER (NUMBER)"})
+
 #+end_example
 
 #+begin_src clojure :results pp :exports both
@@ -168,6 +174,7 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : #'thinkstats2.exploratory-data-analaysis/parse-value
+:
 
 #+begin_src clojure :results pp :exports both
 (defn make-row-parser
@@ -184,6 +191,7 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : #'thinkstats2.exploratory-data-analaysis/make-row-parser
+:
 
 #+begin_src clojure :results pp :exports both
 (defn reader
@@ -196,6 +204,7 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : #'thinkstats2.exploratory-data-analaysis/reader
+:
 
 #+begin_src clojure :results pp :exports both
 (defn read-dct-data
@@ -208,6 +217,7 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : #'thinkstats2.exploratory-data-analaysis/read-dct-data
+:
 
 #+begin_src clojure :results pp :exports both
 (defn as-dataset
@@ -216,17 +226,43 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
   (let [dict   (read-dict-defn dict-path)
         header (map (comp keyword :name) dict)]
     (with-open [r (reader data-path)]
-      (let [data (read-dct-data dict r)]
-        (reduce
-         (fn [col item] (map (fn [c x] (conj c x)) col item))
-         (repeat (count (first data)) [])
-         data)))))
+      (api/dataset (read-dct-data dict r)
+                   {:layout :as-rows
+                    :column-names header
+                    :dataset-name "2002FemPreg"}))))
 
-(as-dataset "2002FemPreg.dct" "2002FemPreg.dat")
+(def fempreg-ds (as-dataset "2002FemPreg.dct" "2002FemPreg.dat"))
+(ds/select-by-index fempreg-ds [0 1 2 3] [1 2 3])
 #+end_src
 
 #+RESULTS:
-: class java.lang.StackOverflowError
+: :_unnamed [3 4]:
+:
+: | :caseid | :pregordr | :howpreg-n | :howpreg-p |
+: |---------|----------:|-----------:|-----------:|
+: |       1 |         2 |            |            |
+: |       2 |         1 |            |            |
+: |       2 |         2 |            |            |
+:
+:
+
+
+#+begin_src clojure :results pp
+(ds/select-by-index fempreg-ds [0 1] [1 2 3 4 5])
+#+end_src
+
+#+RESULTS:
+#+begin_example
+:_unnamed [5 2]:
+
+| :caseid | :pregordr |
+|---------|----------:|
+|       1 |         2 |
+|       2 |         1 |
+|       2 |         2 |
+|       2 |         3 |
+|       6 |         1 |
+#+end_example
 
 * Dataset
 
