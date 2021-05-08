@@ -1,0 +1,106 @@
+In this chapter, Allen Downey introduces the statistic data in Stata dictionary
+format. Thus we need to decode the data in Clojure firstly.
+
+Ray Miller already did this work, so let's reuse it [fn:1].
+
+The format of a ~.dct~ file looks like this:
+#+begin_example
+infile dictionary {
+    _column(1)      str12                             caseid  %12s  "RESPONDENT ID NUMBER"
+   _column(13)       byte                           pregordr   %2f  "PREGNANCY ORDER (NUMBER)"
+   ...
+   }
+#+end_example
+
+It is easy to extract lines with regex:
+
+#+begin_src clojure :results pp :exports both
+(require '[clojure.java.io :as io])
+(def dict-line-rx #"^\s+_column\((\d+)\)\s+(\S+)\s+(\S+)\s+%(\d+)(\S)\s+\"([^\"]+)\"")
+(def line (with-open [r (io/reader "resources/2002FemPreg.dct")]
+            (first (rest (line-seq r)))))
+line
+#+end_src
+
+#+RESULTS:
+: "    _column(1)      str12                             caseid  %12s  \"RESPONDENT ID NUMBER\""
+:
+
+#+begin_src clojure :results pp :exports both
+(re-find dict-line-rx line)
+#+end_src
+
+#+RESULTS:
+: ["    _column(1)      str12                             caseid  %12s  \"RESPONDENT ID NUMBER\""
+:  "1"
+:  "str12"
+:  "caseid"
+:  "12"
+:  "s"
+:  "RESPONDENT ID NUMBER"]
+:
+
+#+begin_src clojure :results pp :exports both
+(require '[clojure.string :as str])
+(defn parse-dict-line
+  [line]
+  (try (let [[_ col type name f-len f-spec descr] (re-find dict-line-rx line)]
+         {:col    (dec (Integer/parseInt col))
+          :type   type
+          :name   (str/replace name "_" "-")
+          :f-len  (Integer/parseInt f-len)
+          :f-spec f-spec
+          :descr  descr})
+       (catch Exception e (println line))))
+#+end_src
+
+#+RESULTS:
+: #'user/parse-dict-line
+:
+
+#+begin_src clojure :results pp :exports both
+(parse-dict-line line)
+#+end_src
+
+#+RESULTS:
+: {:col 0,
+:  :type "str12",
+:  :name "caseid",
+:  :f-len 12,
+:  :f-spec "s",
+:  :descr "RESPONDENT ID NUMBER"}
+:
+
+#+begin_src clojure :results pp :exports both
+(defn read-dict-defn
+  "Read a Stata dictionary file, return a vector of column definitions."
+  [path]
+  (with-open [r (io/reader path)]
+    (mapv parse-dict-line (butlast (rest (line-seq r))))))
+#+end_src
+
+#+RESULTS:
+: #'user/read-dict-defn
+:
+
+#+begin_src clojure :results pp :exports both
+(def dict (read-dict-defn "resources/2002FemPreg.dct"))
+#+end_src
+
+#+RESULTS:
+: #'user/dict
+:
+
+#+begin_src clojure :results pp :exports both
+(count dict)
+#+end_src
+
+#+RESULTS:
+: 243
+:
+
+
+
+* Footnotes
+
+[fn:1] https://tech.metail.com/think-stats-in-clojure-i/

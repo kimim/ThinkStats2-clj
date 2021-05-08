@@ -1,0 +1,5 @@
+{:paths ["src/clj"]
+ :aliases {:run
+           {:main-opts ["-m" "thinkstats2.core"]}}
+
+ :deps {techascent/tech.ml.dataset      {:mvn/version "6.00-beta-7"}}}
