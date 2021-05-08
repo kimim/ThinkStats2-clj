@@ -232,6 +232,20 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
                     :dataset-name "2002FemPreg"}))))
 
 (def fempreg-ds (as-dataset "2002FemPreg.dct" "2002FemPreg.dat"))
+#+end_src
+
+The total count of columns is 243? and rows is 13593:
+
+#+begin_src clojure :results pp
+(ds/shape fempreg-ds)
+#+end_src
+
+#+RESULTS:
+: [243 13593]
+:
+
+
+#+begin_src clojure :results pp
 (ds/select-by-index fempreg-ds [0 1 2 3] [1 2 3])
 #+end_src
 
@@ -263,6 +277,31 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 |       2 |         3 |
 |       6 |         1 |
 #+end_example
+
+~ds/column-names~ returns full list of column names. Here we print out the first
+10 of 243 columns:
+
+#+begin_src clojure :results pp
+(->> (ds/column-names fempreg-ds)
+     (take 10))
+#+end_src
+
+#+RESULTS:
+#+begin_example
+(:caseid
+ :pregordr
+ :howpreg-n
+ :howpreg-p
+ :moscurrp
+ :nowprgdk
+ :pregend1
+ :pregend2
+ :nbrnaliv
+ :multbrth)
+
+#+end_example
+
+
 
 * Dataset
 
