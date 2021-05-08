@@ -234,6 +234,22 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 (def fempreg-ds (as-dataset "2002FemPreg.dct" "2002FemPreg.dat"))
 #+end_src
 
+#+RESULTS:
+: #'thinkstats2.exploratory-data-analaysis/fempreg-ds
+:
+
+Assgin a name to the dataset:
+
+#+begin_src clojure :results pp
+(def fempreg-ds (ds/set-dataset-name fempreg-ds "2002FemPreg"))
+(ds/dataset-name fempreg-ds)
+#+end_src
+
+#+RESULTS:
+: "2002FemPreg"
+:
+
+
 The total count of columns is 243? and rows is 13593:
 
 #+begin_src clojure :results pp
@@ -244,13 +260,12 @@ The total count of columns is 243? and rows is 13593:
 : [243 13593]
 :
 
-
 #+begin_src clojure :results pp
 (ds/select-by-index fempreg-ds [0 1 2 3] [1 2 3])
 #+end_src
 
 #+RESULTS:
-: :_unnamed [3 4]:
+: 2002FemPreg [3 4]:
 :
 : | :caseid | :pregordr | :howpreg-n | :howpreg-p |
 : |---------|----------:|-----------:|-----------:|
@@ -267,7 +282,7 @@ The total count of columns is 243? and rows is 13593:
 
 #+RESULTS:
 #+begin_example
-:_unnamed [5 2]:
+2002FemPreg [5 2]:
 
 | :caseid | :pregordr |
 |---------|----------:|
@@ -276,6 +291,8 @@ The total count of columns is 243? and rows is 13593:
 |       2 |         2 |
 |       2 |         3 |
 |       6 |         1 |
+
+
 #+end_example
 
 ~ds/column-names~ returns full list of column names. Here we print out the first
@@ -298,6 +315,145 @@ The total count of columns is 243? and rows is 13593:
  :pregend2
  :nbrnaliv
  :multbrth)
+
+#+end_example
+
+The result is a list, we can take any of them:
+
+#+begin_src clojure :results pp
+(-> (ds/column-names fempreg-ds)
+    (nth 1))
+#+end_src
+
+#+RESULTS:
+: :pregordr
+:
+
+To access a column, we can use the column name as key:
+
+#+begin_src clojure :results pp
+(def pregordr (fempreg-ds :pregordr))
+pregordr
+#+end_src
+
+#+RESULTS:
+: #tech.v3.dataset.column<int64>[13593]
+: :pregordr
+: [1, 2, 1, 2, 3, 1, 2, 3, 1, 2, 1, 1, 2, 3, 1, 2, 3, 1, 2, 1...]
+:
+
+~pregordr~ is a column type, we can use ~tech.v3.dataset.column~ to check type, get
+name and select some:
+
+#+begin_src clojure :results silent
+(require '[tech.v3.dataset.column :as col])
+#+end_src
+
+To check whether it is a column:
+
+#+begin_src clojure :results pp
+(col/is-column? pregordr)
+#+end_src
+
+#+RESULTS:
+: true
+:
+
+To get the column name:
+
+#+begin_src clojure :results pp
+(col/column-name pregordr)
+#+end_src
+
+#+RESULTS:
+: :pregordr
+:
+
+To select some elements:
+
+#+begin_src clojure :results pp
+(col/select pregordr (concat [0] (range 2 6)))
+#+end_src
+
+#+RESULTS:
+: #tech.v3.dataset.column<int64>[5]
+: :pregordr
+: [1, 1, 2, 3, 1]
+:
+
+We can also get some statistic information from the column:
+
+#+begin_src clojure :results pp
+(col/stats pregordr #{:mean :variance :median :skew})
+#+end_src
+
+#+RESULTS:
+: {:mean 2.3491502979474728,
+:  :skew 1.9296432708168343,
+:  :variance 2.4894741528796667,
+:  :median 2.0}
+:
+
+* Variables
+
+In ThinkStats2, following variables will be used:
+- ~caseid~ is the integer ID of the respondent
+- ~prglngth~ is the integer duration of the pregnancy in weeks.
+- ~outcome~ is an integer code for the outcome of the pregnancy. The code 1
+  indicates a live birth.
+- ~pregordr~ is a pregnancy serial number; for example, the code for a
+  respondent’s first pregnancy is 1, for the second pregnancy is 2, and so on.
+- ~birthord~ is a serial number for live births; the code for a respondent’s
+  first child is 1, and so on. For outcomes other than live birth, this field
+  is blank.
+- ~birthwgt-lb~ and ~birthwgt-oz~ contain the pounds and ounces parts of the birth
+  weight of the baby.
+- ~agepreg~ is the mother’s age at the end of the pregnancy.
+- ~finalwgt~ is the statistical weight associated with the respondent. It is a
+  floating-point value that indicates the number of people in the
+  U.S. population this respondent represents.
+
+Let's have a quick view of these data:
+
+#+begin_src clojure :results pp
+(ds/select-columns fempreg-ds
+                   [:caseid :prglngth :outcome :pregordr
+                    :birthord :birthwgt-lb :birthwgt-oz
+                    :agepreg :finalwgt])
+#+end_src
+
+#+RESULTS:
+#+begin_example
+2002FemPreg [13593 9]:
+
+| :caseid | :prglngth | :outcome | :pregordr | :birthord | :birthwgt-lb | :birthwgt-oz | :agepreg |      :finalwgt |
+|---------|----------:|---------:|----------:|----------:|-------------:|-------------:|---------:|---------------:|
+|       1 |        39 |        1 |         1 |         1 |            8 |           13 |     3316 |  6448.27111170 |
+|       1 |        39 |        1 |         2 |         2 |            7 |           14 |     3925 |  6448.27111170 |
+|       2 |        39 |        1 |         1 |         1 |            9 |            2 |     1433 | 12999.54226439 |
+|       2 |        39 |        1 |         2 |         2 |            7 |            0 |     1783 | 12999.54226439 |
+|       2 |        39 |        1 |         3 |         3 |            6 |            3 |     1833 | 12999.54226439 |
+|       6 |        38 |        1 |         1 |         1 |            8 |            9 |     2700 |  8874.44079922 |
+|       6 |        40 |        1 |         2 |         2 |            9 |            9 |     2883 |  8874.44079922 |
+|       6 |        42 |        1 |         3 |         3 |            8 |            6 |     3016 |  8874.44079922 |
+|       7 |        39 |        1 |         1 |         1 |            7 |            9 |     2808 |  6911.87992053 |
+|       7 |        35 |        1 |         2 |         2 |            6 |           10 |     3233 |  6911.87992053 |
+|      12 |        39 |        1 |         1 |         1 |            7 |           13 |     2575 |  6909.33161825 |
+|      14 |        39 |        1 |         1 |         1 |            7 |            0 |     2300 |  3039.90450710 |
+|      14 |        37 |        1 |         2 |         2 |            4 |            0 |     2458 |  3039.90450710 |
+|      14 |         9 |        2 |         3 |           |              |              |     2983 |  3039.90450710 |
+|      15 |         3 |        4 |         1 |           |              |              |     2750 |  5553.49559922 |
+|      15 |        33 |        1 |         2 |         1 |            7 |           11 |     2833 |  5553.49559922 |
+|      15 |        33 |        1 |         3 |         2 |            7 |            8 |     3033 |  5553.49559922 |
+|      18 |        39 |        1 |         1 |         1 |            6 |            5 |     1891 |  4153.37174143 |
+|      18 |         5 |        4 |         2 |           |              |              |     2783 |  4153.37174143 |
+|      21 |        41 |        1 |         1 |         1 |            8 |           12 |     2791 |  7237.12263041 |
+|      21 |        39 |        1 |         2 |         2 |            8 |            3 |     3058 |  7237.12263041 |
+|      23 |        39 |        1 |         1 |         1 |            5 |            9 |     1891 | 13533.38204312 |
+|      23 |         8 |        4 |         2 |           |              |              |     2708 | 13533.38204312 |
+|      24 |        39 |        1 |         1 |         1 |            6 |           12 |     2225 |  7424.84041447 |
+|      24 |        39 |        1 |         2 |         2 |            7 |            6 |     2575 |  7424.84041447 |
+
 
 #+end_example
 
