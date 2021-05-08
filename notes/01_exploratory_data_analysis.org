@@ -1,7 +1,7 @@
 In this chapter, Allen Downey introduces the statistic data in Stata dictionary
 format. Thus we need to decode the data in Clojure firstly.
 
-Get the data from CDC:
+* Get the data from CDC
 
 #+begin_src clojure :results pp :exports both
 (require '[clj-http.client :as client])
@@ -17,6 +17,8 @@ Get the data from CDC:
 (fetch-data! "https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NSFG/stata/2002FemPreg.dct")
 (fetch-data! "https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NSFG/2002FemPreg.dat")
 #+end_src
+
+* Parse the data
 
 Ray Miller already did this work, so let's reuse it [fn:1].
 
@@ -433,6 +435,11 @@ line
  1231]
 
 #+end_example
+
+* Dataset
+
+
+
 
 * Footnotes
 
