@@ -1,22 +1,29 @@
 In this chapter, Allen Downey introduces the statistic data in Stata dictionary
 format. Thus we need to decode the data in Clojure firstly.
 
+#+begin_src clojure :results silent
+(ns thinkstats2.exploratory-data-analaysis
+  (:require [clj-http.client :as client]
+            [clojure.java.io :as io]
+            [clojure.string :as str])
+  (:import java.util.zip.GZIPInputStream))
+#+end_src
+
 * Get the data from CDC
 
 #+begin_src clojure :results pp :exports both
-(require '[clj-http.client :as client])
-(require '[clojure.java.io :as io])
-(require '[clojure.string :as str])
-
 (defn fetch-data! [url]
   (let [req (client/get url {:as :byte-array :throw-exceptions false})]
     (if (= (:status req) 200)
       (-> (:body req)
-          (io/copy (io/file "resources" (last (str/split url #"/"))))))))
+          (io/copy (io/file (last (str/split url #"/"))))))))
 
 (fetch-data! "https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NSFG/stata/2002FemPreg.dct")
 (fetch-data! "https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NSFG/2002FemPreg.dat")
 #+end_src
+
+#+RESULTS:
+: nil
 
 * Parse the data
 
@@ -35,14 +42,13 @@ It is easy to extract lines with regex:
 
 #+begin_src clojure :results pp :exports both
 (def dict-line-rx #"^\s+_column\((\d+)\)\s+(\S+)\s+(\S+)\s+%(\d+)(\S)\s+\"([^\"]+)\"")
-(def line (with-open [r (io/reader "resources/2002FemPreg.dct")]
+(def line (with-open [r (io/reader "2002FemPreg.dct")]
             (first (rest (line-seq r)))))
 line
 #+end_src
 
 #+RESULTS:
 : "    _column(1)      str12                             caseid  %12s  \"RESPONDENT ID NUMBER\""
-:
 
 #+begin_src clojure :results pp :exports both
 (re-find dict-line-rx line)
@@ -56,7 +62,6 @@ line
 :  "12"
 :  "s"
 :  "RESPONDENT ID NUMBER"]
-:
 
 #+begin_src clojure :results pp :exports both
 (require '[clojure.string :as str])
@@ -73,8 +78,7 @@ line
 #+end_src
 
 #+RESULTS:
-: #'user/parse-dict-line
-:
+: #'thinkstats2.exploratory-data-analaysis/parse-dict-line
 
 #+begin_src clojure :results pp :exports both
 (parse-dict-line line)
@@ -87,7 +91,6 @@ line
 :  :f-len 12,
 :  :f-spec "s",
 :  :descr "RESPONDENT ID NUMBER"}
-:
 
 #+begin_src clojure :results pp :exports both
 (defn read-dict-defn
@@ -98,16 +101,14 @@ line
 #+end_src
 
 #+RESULTS:
-: #'user/read-dict-defn
-:
+: #'thinkstats2.exploratory-data-analaysis/read-dict-defn
 
 #+begin_src clojure :results pp :exports both
-(def dict (read-dict-defn "resources/2002FemPreg.dct"))
+(def dict (read-dict-defn "2002FemPreg.dct"))
 #+end_src
 
 #+RESULTS:
-: #'user/dict
-:
+: #'thinkstats2.exploratory-data-analaysis/dict
 
 #+begin_src clojure :results pp :exports both
 (count dict)
@@ -115,7 +116,6 @@ line
 
 #+RESULTS:
 : 243
-:
 
 #+begin_src clojure :results pp :exports both
 (defn parse-value
@@ -128,8 +128,7 @@ line
 #+end_src
 
 #+RESULTS:
-: #'user/parse-value
-:
+: #'thinkstats2.exploratory-data-analaysis/parse-value
 
 #+begin_src clojure :results pp :exports both
 (defn make-row-parser
@@ -145,11 +144,9 @@ line
 #+end_src
 
 #+RESULTS:
-: #'user/make-row-parser
-:
+: #'thinkstats2.exploratory-data-analaysis/make-row-parser
 
 #+begin_src clojure :results pp :exports both
-(import 'java.util.zip.GZIPInputStream)
 (defn reader
   "Open path with io/reader; coerce to a GZIPInputStream if suffix is .gz"
   [path]
@@ -159,8 +156,7 @@ line
 #+end_src
 
 #+RESULTS:
-: #'user/reader
-:
+: #'thinkstats2.exploratory-data-analaysis/reader
 
 #+begin_src clojure :results pp :exports both
 (defn read-dct-data
@@ -172,8 +168,7 @@ line
 #+end_src
 
 #+RESULTS:
-: #'user/read-dct-data
-:
+: #'thinkstats2.exploratory-data-analaysis/read-dct-data
 
 #+begin_src clojure :results pp :exports both
 (defn as-dataset
@@ -184,168 +179,167 @@ line
     (with-open [r (reader data-path)]
       (first (doall (read-dct-data dict r))))))
 
-
-(as-dataset "resources/2002FemPreg.dct" "resources/2002FemPreg.dat")
+(as-dataset "2002FemPreg.dct" "2002FemPreg.dat")
 #+end_src
 
 #+RESULTS:
 #+begin_example
 ["1"
  1
-
-
-
-
+ nil
+ nil
+ nil
+ nil
  6
-
+ nil
  1
-
-
+ nil
+ nil
  1
  1093
-
+ nil
  1084
-
-
+ nil
+ nil
  9
  0
  39
  9
-
-
-
+ nil
+ nil
+ nil
  0
-
-
+ nil
+ nil
  1
  8
  13
-
-
-
-
-
-
-
-
-
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
  1093
  138
  37
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
  1
-
-
-
-
-
-
-
-
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
  5
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
  1166
  1093
  1166
  920
  1093
-
-
-
-
+ nil
+ nil
+ nil
+ nil
  1
  1
  1
-
-
-
-
-
-
-
-
-
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
  3
-
-
+ nil
+ nil
  1
-
-
+ nil
+ nil
  1
  2
-
-
+ nil
+ nil
  1
  1
-
-
-
-
-
-
-
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
+ nil
  5
  39
  1
@@ -358,12 +352,12 @@ line
  2
  1
  1
-
-
-
+ nil
+ nil
+ nil
  2
  995
-
+ nil
  1
  2
  1
@@ -388,7 +382,7 @@ line
  2
  1
  5
-
+ nil
  0
  0
  0
@@ -433,7 +427,6 @@ line
  2
  9
  1231]
-
 #+end_example
 
 * Dataset
