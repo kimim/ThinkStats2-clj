@@ -40,7 +40,6 @@ line
 
 #+RESULTS:
 : "    _column(1)      str12                             caseid  %12s  \"RESPONDENT ID NUMBER\""
-:
 
 #+begin_src clojure :results pp :exports both
 (re-find dict-line-rx line)
@@ -54,7 +53,6 @@ line
 :  "12"
 :  "s"
 :  "RESPONDENT ID NUMBER"]
-:
 
 Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
@@ -73,7 +71,6 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : #'thinkstats2.exploratory-data-analaysis/parse-dict-line
-:
 
 #+begin_src clojure :results pp :exports both
 (parse-dict-line line)
@@ -86,7 +83,6 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 :  :f-len 12,
 :  :f-spec "s",
 :  :descr "RESPONDENT ID NUMBER"}
-:
 
 
 
@@ -100,7 +96,6 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : #'thinkstats2.exploratory-data-analaysis/read-dict-defn
-:
 
 #+begin_src clojure :results pp :exports both
 (def dict (read-dict-defn "2002FemPreg.dct"))
@@ -108,7 +103,6 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : #'thinkstats2.exploratory-data-analaysis/dict
-:
 
 
 #+begin_src clojure :results pp :exports both
@@ -117,7 +111,6 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : 243
-:
 
 #+begin_src clojure :results pp
 (take 2 dict)
@@ -137,7 +130,6 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
   :f-len 2,
   :f-spec "f",
   :descr "PREGNANCY ORDER (NUMBER)"})
-
 #+end_example
 
 #+begin_src clojure :results pp :exports both
@@ -152,7 +144,6 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : #'thinkstats2.exploratory-data-analaysis/parse-value
-:
 
 #+begin_src clojure :results pp :exports both
 (defn make-row-parser
@@ -169,7 +160,6 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : #'thinkstats2.exploratory-data-analaysis/make-row-parser
-:
 
 #+begin_src clojure :results pp :exports both
 (defn reader
@@ -182,7 +172,6 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : #'thinkstats2.exploratory-data-analaysis/reader
-:
 
 #+begin_src clojure :results pp :exports both
 (defn read-dct-data
@@ -195,7 +184,6 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : #'thinkstats2.exploratory-data-analaysis/read-dct-data
-:
 
 #+begin_src clojure :results pp :exports both
 (defn as-dataset
@@ -214,7 +202,6 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : #'thinkstats2.exploratory-data-analaysis/fempreg-ds
-:
 
 Assgin a name to the dataset:
 
@@ -225,7 +212,6 @@ Assgin a name to the dataset:
 
 #+RESULTS:
 : "2002FemPreg"
-:
 
 
 The total count of columns is 243? and rows is 13593:
@@ -236,7 +222,6 @@ The total count of columns is 243? and rows is 13593:
 
 #+RESULTS:
 : [243 13593]
-:
 
 #+begin_src clojure :results pp
 (ds/select-by-index fempreg-ds [0 1 2 3] [1 2 3])
@@ -250,7 +235,6 @@ The total count of columns is 243? and rows is 13593:
 : |       1 |         2 |            |            |
 : |       2 |         1 |            |            |
 : |       2 |         2 |            |            |
-:
 :
 
 
@@ -269,7 +253,6 @@ The total count of columns is 243? and rows is 13593:
 |       2 |         2 |
 |       2 |         3 |
 |       6 |         1 |
-
 
 #+end_example
 
@@ -293,7 +276,6 @@ The total count of columns is 243? and rows is 13593:
  :pregend2
  :nbrnaliv
  :multbrth)
-
 #+end_example
 
 The result is a list, we can take any of them:
@@ -305,7 +287,6 @@ The result is a list, we can take any of them:
 
 #+RESULTS:
 : :pregordr
-:
 
 To access a column, we can use the column name as key:
 
@@ -318,7 +299,6 @@ pregordr
 : #tech.v3.dataset.column<int64>[13593]
 : :pregordr
 : [1, 2, 1, 2, 3, 1, 2, 3, 1, 2, 1, 1, 2, 3, 1, 2, 3, 1, 2, 1...]
-:
 
 ~pregordr~ is a column type, we can use ~tech.v3.dataset.column~ to check type, get
 name and select some:
@@ -335,7 +315,6 @@ To check whether it is a column:
 
 #+RESULTS:
 : true
-:
 
 To get the column name:
 
@@ -345,7 +324,6 @@ To get the column name:
 
 #+RESULTS:
 : :pregordr
-:
 
 To select some elements:
 
@@ -357,7 +335,6 @@ To select some elements:
 : #tech.v3.dataset.column<int64>[5]
 : :pregordr
 : [1, 1, 2, 3, 1]
-:
 
 We can also get some statistic information from the column:
 
@@ -370,7 +347,6 @@ We can also get some statistic information from the column:
 :  :skew 1.9296432708168343,
 :  :variance 2.4894741528796667,
 :  :median 2.0}
-:
 
 * Variables
 
@@ -432,7 +408,6 @@ Let's have a quick view of these data:
 |      24 |        39 |        1 |         1 |         1 |            6 |           12 |     2225 |  7424.84041447 |
 |      24 |        39 |        1 |         2 |         2 |            7 |            6 |     2575 |  7424.84041447 |
 
-
 #+end_example
 
 * Transformation
@@ -465,7 +440,6 @@ with 100:
 |    14.33 |
 |    17.83 |
 |    18.33 |
-
 
 #+end_example
 
@@ -517,7 +491,6 @@ For example:
 |           99 |              |
 |           99 |              |
 
-
 #+end_example
 
 The total special rows is 105:
@@ -533,7 +506,6 @@ The total special rows is 105:
 
 #+RESULTS:
 : 105
-:
 
 #+begin_src clojure :results pp
 (ds/row-count fempreg-ds)
@@ -541,7 +513,6 @@ The total special rows is 105:
 
 #+RESULTS:
 : 13593
-:
 
 Compare to total count 13593, the special rows are very small, thus we will
 drop them:
@@ -558,7 +529,6 @@ drop them:
 
 #+RESULTS:
 : 13488
-:
 
 At last, we will generate the ~totalwgt-lb~ column:
 
@@ -607,7 +577,6 @@ At last, we will generate the ~totalwgt-lb~ column:
 |       6.7500 |
 |       7.3750 |
 
-
 #+end_example
 
 * Validation
@@ -622,7 +591,6 @@ At last, we will generate the ~totalwgt-lb~ column:
 :  :skew 1.629802492887146,
 :  :variance 1.7405750098003638,
 :  :median 1.0}
-:
 
 #+begin_src clojure :results pp
 (col/unique (:outcome fempreg-ds-drop-special-wgt))
@@ -630,7 +598,6 @@ At last, we will generate the ~totalwgt-lb~ column:
 
 #+RESULTS:
 : #{1 4 6 3 2 5}
-:
 
 #+begin_src clojure :results pp
 (-> (:outcome fempreg-ds)
@@ -639,7 +606,6 @@ At last, we will generate the ~totalwgt-lb~ column:
 
 #+RESULTS:
 : {1 9148, 2 1862, 4 1921, 5 190, 3 120, 6 352}
-:
 
 #+begin_src clojure :results pp
 (-> (:birthwgt-lb fempreg-ds)
@@ -649,7 +615,7 @@ At last, we will generate the ~totalwgt-lb~ column:
 
 #+RESULTS:
 #+begin_example
-([ 4449]
+([nil 4449]
  [0 8]
  [1 40]
  [2 53]
@@ -670,7 +636,6 @@ At last, we will generate the ~totalwgt-lb~ column:
  [97 1]
  [98 1]
  [99 57])
-
 #+end_example
 
 There are some invalid cases, we will use filter to filter them out:
@@ -703,17 +668,35 @@ There are some invalid cases, we will use filter to filter them out:
  [13 3]
  [14 3]
  [15 1])
-
 #+end_example
 
 * Interpretation
 
+The python version is using a function to iterate all the rows and append the
+index to a list mapped with caseid. While with clojure, we can use the group-by
+function to get the same result:
+
 #+begin_src clojure :results pp
-(defn make-preg-map [ds]
-  (let [d {}]
-    ))
+(-> (ds/group-by fempreg-ds :caseid)
+    (get "10229")
+    (ds/select-columns [:caseid :outcome]))
 #+end_src
 
+#+RESULTS:
+#+begin_example
+2002FemPreg [7 2]:
+
+| :caseid | :outcome |
+|---------|---------:|
+|   10229 |        4 |
+|   10229 |        4 |
+|   10229 |        4 |
+|   10229 |        4 |
+|   10229 |        4 |
+|   10229 |        4 |
+|   10229 |        1 |
+
+#+end_example
 
 * Footnotes
 
