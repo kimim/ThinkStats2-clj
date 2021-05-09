@@ -1,0 +1,29 @@
+* Get the data from CDC
+
+#+begin_src clojure :results silent
+(ns thinkstats2.prepare-data
+  (:require [clj-http.client :as client]
+            [clojure.java.io :as io]
+            [clojure.string :as str])
+  (:import java.util.zip.GZIPInputStream))
+#+end_src
+
+Data used in chapter 1 is from CDC. I do not want to keep a local copy in
+github(reduce clone time and save spaces for github), so we will download the
+needed data from CDC. ~fetch-data!~ is a function to fetch data file from URL,
+and put it to top folder. ~2002FemPreg.dct~ is the Stata dictionary definition
+file, and ~20202FemPreg.dat~ is the data file.
+
+#+begin_src clojure :results pp :exports both
+(defn fetch-data! [url]
+  (let [req (client/get url {:as :byte-array :throw-exceptions false})]
+    (if (= (:status req) 200)
+      (-> (:body req)
+          (io/copy (io/file (last (str/split url #"/"))))))))
+
+(fetch-data! "https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NSFG/stata/2002FemPreg.dct")
+(fetch-data! "https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NSFG/2002FemPreg.dat")
+#+end_src
+
+#+RESULTS:
+: nil
