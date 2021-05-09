@@ -673,6 +673,47 @@ At last, we will generate the ~totalwgt-lb~ column:
 
 #+end_example
 
+There are some invalid cases, we will use filter to filter them out:
+
+#+begin_src clojure :results pp
+(-> fempreg-ds
+    (ds/filter #(some? (:birthwgt-lb %)))
+    (ds/filter #(< (:birthwgt-lb %) 20))
+    (ds/select-columns [:caseid :birthwgt-lb])
+    :birthwgt-lb
+    frequencies
+    sort)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+([0 8]
+ [1 40]
+ [2 53]
+ [3 98]
+ [4 229]
+ [5 697]
+ [6 2223]
+ [7 3049]
+ [8 1889]
+ [9 623]
+ [10 132]
+ [11 26]
+ [12 10]
+ [13 3]
+ [14 3]
+ [15 1])
+
+#+end_example
+
+* Interpretation
+
+#+begin_src clojure :results pp
+(defn make-preg-map [ds]
+  (let [d {}]
+    ))
+#+end_src
+
 
 * Footnotes
 
