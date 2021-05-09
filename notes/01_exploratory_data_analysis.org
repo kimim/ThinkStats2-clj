@@ -457,9 +457,241 @@ Let's have a quick view of these data:
 
 #+end_example
 
+* Transformation
+
+Dealing for errors, missings; converting to other formats, and performing
+calculations are called *data cleaning*.
+
+~agepreg~ is encoded as the centiyear of monther's age. Thus we will divide it
+with 100:
+
+#+begin_src clojure :results silent
+(require '[tech.v3.datatype.functional :as dfn])
+#+end_src
+
+#+begin_src clojure :results pp
+(-> fempreg-ds
+    (ds/update-columns [:agepreg] #(dfn// % 100.))
+    (ds/select-columns [:agepreg])
+    (ds/head 5))
+#+end_src
+
+#+RESULTS:
+#+begin_example
+2002FemPreg [5 1]:
+
+| :agepreg |
+|---------:|
+|    33.16 |
+|    39.25 |
+|    14.33 |
+|    17.83 |
+|    18.33 |
+#+end_example
+
+~birthwgt-lb~ and ~birthwgt-oz~ have some special value 97, 98 and 99:
+
+#+begin_example
+97 NOT ASCERTAINED
+98 REFUSED
+99 DON'T KNOW
+#+end_example
+
+For example:
+
+#+begin_src clojure :results pp
+(-> fempreg-ds
+    (ds/select-columns [:birthwgt-lb :birthwgt-oz])
+    (ds/filter-column :birthwgt-lb #{97 98 99}))
+#+end_src
+
+#+RESULTS:
+#+begin_example
+2002FemPreg [59 2]:
+
+| :birthwgt-lb | :birthwgt-oz |
+|-------------:|-------------:|
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
+|           99 |              |
 
 
-* Dataset
+#+end_example
+
+The total special rows is 105:
+
+#+begin_src clojure :results pp
+(-> fempreg-ds
+    (ds/select-columns [:birthwgt-lb :birthwgt-oz])
+    (ds/filter #(or
+                 (contains? #{97 98 99} (:birthwgt-lb %))
+                 (contains? #{97 98 99} (:birthwgt-oz %))))
+    (ds/row-count))
+#+end_src
+
+#+RESULTS:
+: 105
+:
+
+#+begin_src clojure :results pp
+(ds/row-count fempreg-ds)
+#+end_src
+
+#+RESULTS:
+: 13593
+:
+
+Compare to total count 13593, the special rows are very small, thus we will
+drop them:
+
+#+begin_src clojure :results pp
+(def fempreg-ds-drop-special-wgt
+  (-> fempreg-ds
+      (ds/filter #(not
+                   (or
+                    (contains? #{97 98 99} (:birthwgt-lb %))
+                    (contains? #{97 98 99} (:birthwgt-oz %)))))))
+(ds/row-count fempreg-ds-drop-special-wgt)
+#+end_src
+
+#+RESULTS:
+: 13488
+:
+
+At last, we will generate the ~totalwgt-lb~ column:
+
+#+begin_src clojure :results pp
+(->
+ fempreg-ds-drop-special-wgt
+ (ds/add-or-update-column
+  :totalwgt-lb
+  (dfn/+
+   (fempreg-ds-drop-special-wgt :birthwgt-lb)
+   (dfn//
+    (fempreg-ds-drop-special-wgt :birthwgt-oz)
+    16.)))
+ (ds/select-columns [:totalwgt-lb]))
+#+end_src
+
+#+RESULTS:
+#+begin_example
+2002FemPreg [13488 1]:
+
+| :totalwgt-lb |
+|-------------:|
+|       8.8125 |
+|       7.8750 |
+|       9.1250 |
+|       7.0000 |
+|       6.1875 |
+|       8.5625 |
+|       9.5625 |
+|       8.3750 |
+|       7.5625 |
+|       6.6250 |
+|       7.8125 |
+|       7.0000 |
+|       4.0000 |
+|              |
+|              |
+|       7.6875 |
+|       7.5000 |
+|       6.3125 |
+|              |
+|       8.7500 |
+|       8.1875 |
+|       5.5625 |
+|              |
+|       6.7500 |
+|       7.3750 |
+
+
+#+end_example
+
+* Validation
+
+#+begin_src clojure :results pp
+(col/stats (:outcome fempreg-ds-drop-special-wgt)
+           #{:mean :variance :median :skew})
+#+end_src
+
+#+RESULTS:
+: {:mean 1.7699436536180309,
+:  :skew 1.629802492887146,
+:  :variance 1.7405750098003638,
+:  :median 1.0}
+:
+
+#+begin_src clojure :results pp
+(col/unique (:outcome fempreg-ds-drop-special-wgt))
+#+end_src
+
+#+RESULTS:
+: #{1 4 6 3 2 5}
+:
+
+#+begin_src clojure :results pp
+(-> (:outcome fempreg-ds)
+    frequencies)
+#+end_src
+
+#+RESULTS:
+: {1 9148, 2 1862, 4 1921, 5 190, 3 120, 6 352}
+:
+
+#+begin_src clojure :results pp
+(-> (:birthwgt-lb fempreg-ds)
+    frequencies
+    sort)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+([ 4449]
+ [0 8]
+ [1 40]
+ [2 53]
+ [3 98]
+ [4 229]
+ [5 697]
+ [6 2223]
+ [7 3049]
+ [8 1889]
+ [9 623]
+ [10 132]
+ [11 26]
+ [12 10]
+ [13 3]
+ [14 3]
+ [15 1]
+ [51 1]
+ [97 1]
+ [98 1]
+ [99 57])
+
+#+end_example
 
 
 * Footnotes
