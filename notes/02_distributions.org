@@ -1,0 +1,17 @@
+#+TITLE: Chapter 2 Distributions
+
+* Histograms
+
+In Clojure, the efficient way to compute frequencies is with the ~frequencies~
+function. Given a sequence of values, t:
+
+#+begin_src clojure :results pp :exports both
+(def t [1 1 2 2 2 3 3 3 3 4 5 5 6 7 7 8 8 8 9 9 9])
+(->> (frequencies t)
+     (sort-by val))
+#+end_src
+
+#+RESULTS:
+: ([4 1] [6 1] [7 2] [1 2] [5 2] [2 3] [9 3] [8 3] [3 4])
+
+* Representing histograms
