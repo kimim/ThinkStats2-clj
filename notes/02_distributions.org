@@ -1,5 +1,17 @@
 #+TITLE: Chapter 2 Distributions
 
+#+begin_src clojure :results silent
+(ns thinkstats2.distributions
+  (:require [clj-http.client :as client]
+            [clojure.java.io :as io]
+            [clojure.string :as str]
+            [tech.v3.dataset :as ds]
+            [tablecloth.api :as api]
+            [thinkstats2-clj.nsfg :as nsfg]
+            [thinkstats2-clj.chart :as chart])
+  (:import java.util.zip.GZIPInputStream))
+#+end_src
+
 * Histograms
 
 In Clojure, the efficient way to compute frequency is with the ~frequencies~
@@ -51,6 +63,9 @@ fallback replace value 0.
 
 * Plotting histograms
 
+XChart[fn:1] is a light weight Java library for plotting data. With a small
+clojure wrapper, we can easily draw charts:
+
 #+begin_src clojure :results file :file ../histogram.svg :exports both
 (require '[thinkstats2-clj.chart :as chart])
 (chart/histogram [1 2 3] [ 1 2 3] :filename "histogram.svg")
@@ -58,3 +73,33 @@ fallback replace value 0.
 
 #+RESULTS:
 [[file:../histogram.svg]]
+
+* NSFG variables
+
+#+begin_src clojure :results silent
+(def fempreg-ds (nsfg/as-dataset "2002FemPreg.dct" "2002FemPreg.dat"))
+(def freq (-> fempreg-ds
+              (ds/set-dataset-name "2002FemPreg")
+              :birthwgt-lb
+              (->> (filter some?)
+                   (filter #(< % 20)))
+              frequencies
+              sort))
+(def freq-xs (map first freq))
+(def freq-ys (map second freq))
+#+end_src
+
+#+begin_src clojure :results file :file ../distribute-birthwgt.svg :exports both
+(chart/histogram freq-xs freq-ys :filename "distribute-birthwgt.svg")
+#+end_src
+
+#+RESULTS:
+[[file:../distribute-birthwgt.svg]]
+
+
+
+
+
+* Footnotes
+
+[fn:1] https://github.com/knowm/XChart
