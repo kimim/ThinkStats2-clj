@@ -26,7 +26,6 @@ function. Given a sequence of values, t:
 
 #+RESULTS:
 : ([4 1] [6 1] [7 2] [1 2] [5 2] [2 3] [9 3] [8 3] [3 4])
-:
 
 * Representing histograms
 
@@ -39,7 +38,6 @@ With the result of ~frequencies~, we can get a value with the key:
 
 #+RESULTS:
 : 2
-:
 
 If we look up a value that has never appeared, the frequency is 0. We can use a
 fallback replace value 0.
@@ -50,7 +48,6 @@ fallback replace value 0.
 
 #+RESULTS:
 : 0
-:
 
 ~keys~ returns a list of the object values in hist:
 
@@ -60,20 +57,19 @@ fallback replace value 0.
 
 #+RESULTS:
 : (1 2 3 5)
-:
 
 * Plotting histograms
 
 XChart[fn:1] is a light weight Java library for plotting data. With a small
 clojure wrapper, we can easily draw charts:
 
-#+begin_src clojure :results file :file ../histogram.svg :exports both
-(require '[thinkstats2-clj.chart :as chart])
+#+begin_src clojure :results silent :file ../histogram.svg :exports both
 (chart/histogram [1 2 3] [ 1 2 3] :filename "histogram.svg")
 #+end_src
 
 #+RESULTS:
 [[file:../histogram.svg]]
+
 
 * NSFG variables
 
@@ -93,30 +89,12 @@ freq
 #+end_src
 
 #+RESULTS:
-#+begin_example
-([0 8]
- [1 40]
- [2 53]
- [3 98]
- [4 229]
- [5 697]
- [6 2223]
- [7 3049]
- [8 1889]
- [9 623]
- [10 132]
- [11 26]
- [12 10]
- [13 3]
- [14 3]
- [15 1])
-
-#+end_example
+: ([0 8] [1 40] [2 53] [3 98] [4 229] [5 697] [6 2223] [7 3049] [8 1889] [9 623] [10 132] [11 26] [12 10] [13 3] [14 3] [15 1])
 
 The distribution of ~birthwgt-lb~ is of the *normal* distribution, also called a
 *Caussian* distribution.
 
-#+begin_src clojure :results file :file ../distribute-birthwgt.svg :exports both
+#+begin_src clojure :results silent :file ../distribute-birthwgt.svg :exports both
 (chart/histogram freq-xs freq-ys :filename "distribute-birthwgt.svg"
                  :title "birthwgt-lb" :legend "birthwgt-lb")
 #+end_src
@@ -139,29 +117,11 @@ freq-oz
 #+end_src
 
 #+RESULTS:
-#+begin_example
-([0 1037]
- [1 408]
- [2 603]
- [3 533]
- [4 525]
- [5 535]
- [6 709]
- [7 501]
- [8 756]
- [9 505]
- [10 475]
- [11 557]
- [12 555]
- [13 487]
- [14 475]
- [15 378])
-
-#+end_example
+: ([0 1037] [1 408] [2 603] [3 533] [4 525] [5 535] [6 709] [7 501] [8 756] [9 505] [10 475] [11 557] [12 555] [13 487] [14 475] [15 378])
 
 Distribution of ~brithwgt-oz~ is expected to be *uniform*:
 
-#+begin_src clojure :results file :file ../distribute-birthwgt-oz.svg :exports both
+#+begin_src clojure :results silent :file ../distribute-birthwgt-oz.svg :exports both
 (chart/histogram freq-xs-oz freq-ys-oz :filename "distribute-birthwgt-oz.svg"
                  :title "birthwgt-oz" :legend "birthwgt-oz")
 #+end_src
@@ -183,48 +143,11 @@ freq-age
 #+end_src
 
 #+RESULTS:
-#+begin_example
-([10 2]
- [11 1]
- [12 1]
- [13 14]
- [14 43]
- [15 128]
- [16 242]
- [17 398]
- [18 546]
- [19 559]
- [20 638]
- [21 646]
- [22 557]
- [23 593]
- [24 561]
- [25 512]
- [26 517]
- [27 489]
- [28 449]
- [29 395]
- [30 396]
- [31 339]
- [32 279]
- [33 220]
- [34 175]
- [35 138]
- [36 99]
- [37 83]
- [38 55]
- [39 34]
- [40 21]
- [41 14]
- [42 2]
- [43 1]
- [44 1])
-
-#+end_example
+: ([10 2] [11 1] [12 1] [13 14] [14 43] [15 128] [16 242] [17 398] [18 546] [19 559] [20 638] [21 646] [22 557] [23 593] [24 561] [25 512] [26 517] [27 489] [28 449] [29 395] [30 396] [31 339] [32 279] [33 220] [34 175] [35 138] [36 99] [37 83] [38 55] [39 34] [40 21] [41 14] [42 2] [43 1] [44 1])
 
 The mother's age at the end of pregnancy:
 
-#+begin_src clojure :results file :file ../distribute-agepreg.svg :exports both
+#+begin_src clojure :results silent :file ../distribute-agepreg.svg :exports both
 (chart/histogram freq-xs-age freq-ys-age :filename "distribute-agepreg.svg"
                  :legend "agepreg" :width 800 :height 600)
 #+end_src
@@ -248,48 +171,9 @@ freq-length
 #+end_src
 
 #+RESULTS:
-#+begin_example
-([0 1]
- [4 1]
- [9 1]
- [13 1]
- [17 2]
- [18 1]
- [19 1]
- [20 1]
- [21 2]
- [22 7]
- [23 1]
- [24 13]
- [25 3]
- [26 35]
- [27 3]
- [28 32]
- [29 21]
- [30 138]
- [31 27]
- [32 115]
- [33 49]
- [34 60]
- [35 311]
- [36 321]
- [37 455]
- [38 607]
- [39 4693]
- [40 1116]
- [41 587]
- [42 328]
- [43 148]
- [44 46]
- [45 10]
- [46 1]
- [47 1]
- [48 7]
- [50 2])
+: ([0 1] [4 1] [9 1] [13 1] [17 2] [18 1] [19 1] [20 1] [21 2] [22 7] [23 1] [24 13] [25 3] [26 35] [27 3] [28 32] [29 21] [30 138] [31 27] [32 115] [33 49] [34 60] [35 311] [36 321] [37 455] [38 607] [39 4693] [40 1116] [41 587] [42 328] [43 148] [44 46] [45 10] [46 1] [47 1] [48 7] [50 2])
 
-#+end_example
-
-#+begin_src clojure :results file :file ../distribute-length.svg :exports both
+#+begin_src clojure :results silent :file ../distribute-length.svg :exports both
 (chart/histogram freq-xs-length freq-ys-length :filename "distribute-length.svg"
                  :width 800 :height 600)
 #+end_src
