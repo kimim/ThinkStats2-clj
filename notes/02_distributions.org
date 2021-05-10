@@ -2,7 +2,7 @@
 
 * Histograms
 
-In Clojure, the efficient way to compute frequencies is with the ~frequencies~
+In Clojure, the efficient way to compute frequency is with the ~frequencies~
 function. Given a sequence of values, t:
 
 #+begin_src clojure :results pp :exports both
@@ -13,5 +13,40 @@ function. Given a sequence of values, t:
 
 #+RESULTS:
 : ([4 1] [6 1] [7 2] [1 2] [5 2] [2 3] [9 3] [8 3] [3 4])
+:
 
 * Representing histograms
+
+With the result of ~frequencies~, we can get a value with the key:
+
+#+begin_src clojure :results pp :exports both
+(def hist (frequencies [1 2 2 3 5]))
+(hist 2)
+#+end_src
+
+#+RESULTS:
+: 2
+:
+
+If we look up a value that has never appeared, the frequency is 0. We can use a
+fallback replace value 0.
+
+#+begin_src clojure :results pp :exports both
+(hist 4 0)
+#+end_src
+
+#+RESULTS:
+: 0
+:
+
+~keys~ returns a list of the object values in hist:
+
+#+begin_src clojure :results pp :exports both
+(keys hist)
+#+end_src
+
+#+RESULTS:
+: (1 2 3 5)
+:
+
+* Plotting histograms
