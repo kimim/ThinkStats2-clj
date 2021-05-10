@@ -14,4 +14,4 @@
     (.setTitle xy title)
     (.addSeries xy legend xs ys)
     (VectorGraphicsEncoder/saveVectorGraphic
-     xy filename VectorGraphicsEncoder$VectorGraphicsFormat/PDF)))
+     xy filename VectorGraphicsEncoder$VectorGraphicsFormat/SVG)))

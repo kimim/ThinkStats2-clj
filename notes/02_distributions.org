@@ -50,3 +50,11 @@ fallback replace value 0.
 :
 
 * Plotting histograms
+
+#+begin_src clojure :results file :file ../histogram.svg :exports both
+(require '[thinkstats2-clj.chart :as chart])
+(chart/histogram [1 2 3] [ 1 2 3] :filename "histogram.svg")
+#+end_src
+
+#+RESULTS:
+[[file:../histogram.svg]]
