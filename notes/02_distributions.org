@@ -358,6 +358,83 @@ freq-1st
 #+RESULTS:
 [[file:../distribute-1st-baby.svg]]
 
+* Outliers
+
+#+begin_src clojure :results pp
+(-> fempreg-ds
+    (ds/set-dataset-name "2002FemPreg")
+    (ds/filter #(and (= 1 (:outcome %))))
+    :prglngth
+    frequencies
+    sort)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+([0 1]
+ [4 1]
+ [9 1]
+ [13 1]
+ [17 2]
+ [18 1]
+ [19 1]
+ [20 1]
+ [21 2]
+ [22 7]
+ [23 1]
+ [24 13]
+ [25 3]
+ [26 35]
+ [27 3]
+ [28 32]
+ [29 21]
+ [30 138]
+ [31 27]
+ [32 115]
+ [33 49]
+ [34 60]
+ [35 311]
+ [36 321]
+ [37 455]
+ [38 607]
+ [39 4693]
+ [40 1116]
+ [41 587]
+ [42 328]
+ [43 148]
+ [44 46]
+ [45 10]
+ [46 1]
+ [47 1]
+ [48 7]
+ [50 2])
+
+#+end_example
+
+* First babies
+
+#+begin_src clojure :results pp
+(def firsts (-> fempreg-ds
+                (ds/filter #(and (= 1 (:outcome %))
+                                 (= 1 (:birthord %))))
+                :prglngth
+                frequencies
+                sort))
+(def others (-> fempreg-ds
+                (ds/filter #(and (= 1 (:outcome %))
+                                 (not= 1 (:birthord %))))
+                :prglngth
+                frequencies
+                sort))
+#+end_src
+
+#+RESULTS:
+: #'thinkstats2.distributions/others
+:
+
+Now, I need to write a plotting function to plot two hisograms.
+
+
 
 * Footnotes
 
