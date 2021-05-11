@@ -1,4 +1,4 @@
-{:paths ["src/clj"]
+{:paths ["src"]
  :aliases {:run
            {:main-opts ["-m" "thinkstats2.core"]}}
 
