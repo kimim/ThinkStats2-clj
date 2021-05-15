@@ -202,16 +202,19 @@ Then we define ~parse-dict-line~ to extract a key mapped info from one line:
 
 #+RESULTS:
 : #'thinkstats2.exploratory-data-analaysis/fempreg-ds
+:
 
-Assgin a name to the dataset:
++Assgin a name to the dataset:+ We do not need to assign a name to this dataset
+anymore. It was fixed in issue [[https://github.com/scicloj/tablecloth/issues/41][#41]] of ~tablecloth~ by [[https://github.com/genmeblog][genmeblog]].
 
 #+begin_src clojure :results pp
-(def fempreg-ds (ds/set-dataset-name fempreg-ds "2002FemPreg"))
+;;(def fempreg-ds (ds/set-dataset-name fempreg-ds "2002FemPreg"))
 (ds/dataset-name fempreg-ds)
 #+end_src
 
 #+RESULTS:
 : "2002FemPreg"
+:
 
 
 The total count of columns is 243? and rows is 13593:
