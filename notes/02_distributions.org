@@ -15,22 +15,28 @@
 
 * Histograms
 
+The *distribution* of a variable is the description of how many times the values
+appeared in the dataset. The most common presentation of distribution is
+*histogram*, which shows the *frequency* of each value.
+
 In Clojure, the efficient way to compute frequency is with the ~frequencies~
 function. Given a sequence of values, t:
 
 #+begin_src clojure :results pp :exports both
 (def t [1 1 2 2 2 3 3 3 3 4 5 5 6 7 7 8 8 8 9 9 9])
-(->> (frequencies t)
-     (sort-by val))
+(->> (frequencies t))
 #+end_src
 
 #+RESULTS:
-: ([4 1] [6 1] [7 2] [1 2] [5 2] [2 3] [9 3] [8 3] [3 4])
+: {7 2, 1 2, 4 1, 6 1, 3 4, 2 3, 9 3, 5 2, 8 3}
 :
+
+The result is a map with the unique variable values as ~keys~ and the frequency of
+the values as ~vals~.
 
 * Representing histograms
 
-With the result of ~frequencies~, we can get a value with the key:
+With the result of ~frequencies~, we can get the frequency of the variable:
 
 #+begin_src clojure :results pp :exports both
 (def hist (frequencies [1 2 2 3 5]))
