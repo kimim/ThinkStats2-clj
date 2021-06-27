@@ -6,12 +6,30 @@
                      VectorGraphicsEncoder
                      VectorGraphicsEncoder$VectorGraphicsFormat)))
 
+(def svg-format VectorGraphicsEncoder$VectorGraphicsFormat/SVG)
+
+(defn normalize
+  "Normalize the series data, fill the empty values with 0"
+  [series]
+  (let [xs (for [serie series]
+             (map first (second serie)))
+        xs (flatten xs)
+        x-max (apply max xs)
+        x-min (apply min xs)
+        normal-xs (->> (range x-min (inc x-max))
+                       (reduce #(into %1 {%2 0}) {}))
+        new-series (for [serie series]
+                     {(first serie) (into (sorted-map)
+                                          (merge normal-xs (second serie)))})]
+    (reduce into {} new-series)))
+
 (defn histogram
   "Plot a histogram chart"
-  [xs ys & {:keys [filename title legend width height]
-            :or {title "histogram" legend "y(x)" width 600 height 400}}]
+  [series & {:keys [filename title width height]
+             :or {title "histogram" width 600 height 400}}]
   (let [xy (CategoryChart. width height)]
     (.setTitle xy title)
-    (.addSeries xy legend xs ys)
+    (doseq [serie series]
+      (.addSeries xy (first serie) (keys (second serie)) (vals (second serie))))
     (VectorGraphicsEncoder/saveVectorGraphic
-     xy filename VectorGraphicsEncoder$VectorGraphicsFormat/SVG)))
+     xy filename svg-format)))
