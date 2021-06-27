@@ -5,3 +5,7 @@
 *.pdf
 *.tex
 _minted*
+*.svg
+*.pyg
+*.dat
+*.dct
