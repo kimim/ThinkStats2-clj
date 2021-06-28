@@ -92,27 +92,27 @@ clojure wrapper, we can easily draw charts:
                                (< (:birthwgt-lb %) 20)))
               :birthwgt-lb
               frequencies))
-freq
+(sort freq)
 #+end_src
 
 #+RESULTS:
 #+begin_example
-{0 8,
- 7 3049,
- 1 40,
- 4 229,
- 15 1,
- 13 3,
- 6 2223,
- 3 98,
- 12 10,
- 2 53,
- 11 26,
- 9 623,
- 5 697,
- 14 3,
- 10 132,
- 8 1889}
+([0 8]
+ [1 40]
+ [2 53]
+ [3 98]
+ [4 229]
+ [5 697]
+ [6 2223]
+ [7 3049]
+ [8 1889]
+ [9 623]
+ [10 132]
+ [11 26]
+ [12 10]
+ [13 3]
+ [14 3]
+ [15 1])
 
 #+end_example
 
@@ -136,29 +136,27 @@ The distribution of ~birthwgt-lb~ is of the *normal* distribution, also called a
                  :birthwgt-oz
                  frequencies
                  ))
-(def freq-xs-oz (map first freq-oz))
-(def freq-ys-oz (map second freq-oz))
-freq-oz
+(sort freq-oz)
 #+end_src
 
 #+RESULTS:
 #+begin_example
-{0 1037,
- 7 501,
- 1 408,
- 4 525,
- 15 378,
- 13 487,
- 6 709,
- 3 533,
- 12 555,
- 2 603,
- 11 557,
- 9 505,
- 5 535,
- 14 475,
- 10 475,
- 8 756}
+([0 1037]
+ [1 408]
+ [2 603]
+ [3 533]
+ [4 525]
+ [5 535]
+ [6 709]
+ [7 501]
+ [8 756]
+ [9 505]
+ [10 475]
+ [11 557]
+ [12 555]
+ [13 487]
+ [14 475]
+ [15 378])
 
 #+end_example
 
@@ -179,48 +177,46 @@ Distribution of ~brithwgt-oz~ is expected to be *uniform*:
                   (ds/update-columns [:agepreg] #(dfn// % 100))
                   :agepreg
                   frequencies))
-(def freq-xs-age (map first freq-age))
-(def freq-ys-age (map second freq-age))
-freq-age
+(sort freq-age)
 #+end_src
 
 #+RESULTS:
 #+begin_example
-{20 638,
- 27 489,
- 24 561,
- 39 34,
- 15 128,
- 21 646,
- 31 339,
- 32 279,
- 40 21,
- 33 220,
- 13 14,
- 22 557,
- 36 99,
- 41 14,
- 43 1,
- 29 395,
- 44 1,
- 28 449,
- 25 512,
- 34 175,
- 17 398,
- 12 1,
- 23 593,
- 35 138,
- 19 559,
- 11 1,
- 14 43,
- 26 517,
- 16 242,
- 38 55,
- 30 396,
- 10 2,
- 18 546,
- 42 2,
- 37 83}
+([10 2]
+ [11 1]
+ [12 1]
+ [13 14]
+ [14 43]
+ [15 128]
+ [16 242]
+ [17 398]
+ [18 546]
+ [19 559]
+ [20 638]
+ [21 646]
+ [22 557]
+ [23 593]
+ [24 561]
+ [25 512]
+ [26 517]
+ [27 489]
+ [28 449]
+ [29 395]
+ [30 396]
+ [31 339]
+ [32 279]
+ [33 220]
+ [34 175]
+ [35 138]
+ [36 99]
+ [37 83]
+ [38 55]
+ [39 34]
+ [40 21]
+ [41 14]
+ [42 2]
+ [43 1]
+ [44 1])
 
 #+end_example
 
@@ -243,50 +239,48 @@ weeks.
                      (ds/filter #(and (= 1 (:outcome %))))
                      :prglngth
                      frequencies))
-(def freq-xs-length (map first freq-length))
-(def freq-ys-length (map second freq-length))
-freq-length
+(sort freq-length)
 #+end_src
 
 #+RESULTS:
 #+begin_example
-{0 1,
- 20 1,
- 27 3,
- 24 13,
- 39 4693,
- 46 1,
- 4 1,
- 48 7,
- 50 2,
- 21 2,
- 31 27,
- 32 115,
- 40 1116,
- 33 49,
- 13 1,
- 22 7,
- 36 321,
- 41 587,
- 43 148,
- 29 21,
- 44 46,
- 28 32,
- 25 3,
- 34 60,
- 17 2,
- 23 1,
- 47 1,
- 35 311,
- 19 1,
- 9 1,
- 45 10,
- 26 35,
- 38 607,
- 30 138,
- 18 1,
- 42 328,
- 37 455}
+([0 1]
+ [4 1]
+ [9 1]
+ [13 1]
+ [17 2]
+ [18 1]
+ [19 1]
+ [20 1]
+ [21 2]
+ [22 7]
+ [23 1]
+ [24 13]
+ [25 3]
+ [26 35]
+ [27 3]
+ [28 32]
+ [29 21]
+ [30 138]
+ [31 27]
+ [32 115]
+ [33 49]
+ [34 60]
+ [35 311]
+ [36 321]
+ [37 455]
+ [38 607]
+ [39 4693]
+ [40 1116]
+ [41 587]
+ [42 328]
+ [43 148]
+ [44 46]
+ [45 10]
+ [46 1]
+ [47 1]
+ [48 7]
+ [50 2])
 
 #+end_example
 
@@ -307,47 +301,45 @@ freq-length
                   (ds/unique-by-column {:keep-fn #(first %2)} :caseid)
                   :agepreg
                   frequencies))
-(def freq-xs-1st (map first freq-1st))
-(def freq-ys-1st (map second freq-1st))
-freq-1st
+(sort freq-1st)
 #+end_src
 
 #+RESULTS:
 #+begin_example
-{20 374,
- 27 187,
- 24 234,
- 39 7,
- 15 119,
- 21 341,
- 31 103,
- 32 85,
- 40 4,
- 33 56,
- 13 13,
- 22 254,
- 36 24,
- 41 3,
- 43 1,
- 29 141,
- 28 161,
- 25 215,
- 34 49,
- 17 323,
- 12 1,
- 23 257,
- 35 28,
- 19 368,
- 11 1,
- 14 42,
- 26 196,
- 16 214,
- 38 17,
- 30 152,
- 10 2,
- 18 417,
- 42 1,
- 37 23}
+([10 2]
+ [11 1]
+ [12 1]
+ [13 13]
+ [14 42]
+ [15 119]
+ [16 214]
+ [17 323]
+ [18 417]
+ [19 368]
+ [20 374]
+ [21 341]
+ [22 254]
+ [23 257]
+ [24 234]
+ [25 215]
+ [26 196]
+ [27 187]
+ [28 161]
+ [29 141]
+ [30 152]
+ [31 103]
+ [32 85]
+ [33 56]
+ [34 49]
+ [35 28]
+ [36 24]
+ [37 23]
+ [38 17]
+ [39 7]
+ [40 4]
+ [41 3]
+ [42 1]
+ [43 1])
 
 #+end_example
 
@@ -367,54 +359,55 @@ freq-1st
     (ds/set-dataset-name "2002FemPreg")
     (ds/filter #(and (= 1 (:outcome %))))
     :prglngth
-    frequencies)
+    frequencies
+    sort)
 #+end_src
 
 #+RESULTS:
 #+begin_example
-{0 1,
- 20 1,
- 27 3,
- 24 13,
- 39 4693,
- 46 1,
- 4 1,
- 48 7,
- 50 2,
- 21 2,
- 31 27,
- 32 115,
- 40 1116,
- 33 49,
- 13 1,
- 22 7,
- 36 321,
- 41 587,
- 43 148,
- 29 21,
- 44 46,
- 28 32,
- 25 3,
- 34 60,
- 17 2,
- 23 1,
- 47 1,
- 35 311,
- 19 1,
- 9 1,
- 45 10,
- 26 35,
- 38 607,
- 30 138,
- 18 1,
- 42 328,
- 37 455}
+([0 1]
+ [4 1]
+ [9 1]
+ [13 1]
+ [17 2]
+ [18 1]
+ [19 1]
+ [20 1]
+ [21 2]
+ [22 7]
+ [23 1]
+ [24 13]
+ [25 3]
+ [26 35]
+ [27 3]
+ [28 32]
+ [29 21]
+ [30 138]
+ [31 27]
+ [32 115]
+ [33 49]
+ [34 60]
+ [35 311]
+ [36 321]
+ [37 455]
+ [38 607]
+ [39 4693]
+ [40 1116]
+ [41 587]
+ [42 328]
+ [43 148]
+ [44 46]
+ [45 10]
+ [46 1]
+ [47 1]
+ [48 7]
+ [50 2])
 
 #+end_example
 
 * First babies
 
-#+begin_src clojure :results pp
+#+begin_src clojure :results none
 (def firsts (-> fempreg-ds
                 (ds/filter #(and (= 1 (:outcome %))
                                  (= 1 (:birthord %))
@@ -427,49 +420,7 @@ freq-1st
                                  (< 27 (:prglngth %) 46)))
                 :prglngth
                 frequencies))
-[firsts others]
 #+end_src
-
-#+RESULTS:
-#+begin_example
-[{39 2114,
-  31 15,
-  32 55,
-  40 536,
-  33 28,
-  36 172,
-  41 360,
-  43 87,
-  29 9,
-  44 23,
-  28 24,
-  34 29,
-  35 159,
-  45 6,
-  38 272,
-  30 73,
-  42 205,
-  37 208}
- {39 2579,
-  31 12,
-  32 60,
-  40 580,
-  33 21,
-  36 149,
-  41 227,
-  43 61,
-  29 12,
-  44 23,
-  28 8,
-  34 31,
-  35 152,
-  45 4,
-  38 335,
-  30 65,
-  42 123,
-  37 247}]
-
-#+end_example
 
 Now, I need to write a plotting function to plot two hisograms.
 
@@ -481,7 +432,67 @@ Now, I need to write a plotting function to plot two hisograms.
 #+RESULTS:
 [[file:../test-data.svg]]
 
+* Summarizing distributions
 
+*Summary statistics* is used summarize the distribution with a few descriptive
+statistics.
+
+The most common summary statistic is the mean, which is meant to describe the
+central tendency of the distribution.
+
+#+begin_export latex
+\begin{equation}
+\bar{x} = \frac{1}{n} \sum_i x_i
+\end{equation}
+#+end_export
+
+- The “mean” of a sample is the summary statistic computed with the previous
+  formula.
+- An “average” is one of several summary statistics you might choose to describe
+  a central tendency.
+
+* Variance
+
+*Variance* is a summary statistic intended to describe the variability or spread
+of a distribution. The variance of a set of values is
+
+#+begin_export latex
+\begin{equation}
+S^2 = \frac{1}{n} \sum_i (x - \bar{x})^2
+\end{equation}
+#+end_export
+
+The term $x_i − \bar{x}$ is called the “deviation from the mean,” so variance is
+the mean squared deviation. The square root of variance, $S$, is the *standard
+deviation*.
+
+~tech.ml.dataset~ provides ~brief~ function to calculate mean, skew and
+standard-deviation.
+
+#+begin_src clojure :results pp :exports both
+(-> fempreg-ds
+    (ds/select-columns [:prglngth])
+    (ds/brief))
+#+end_src
+
+#+RESULTS:
+#+begin_example
+({:min 0.0,
+  :n-missing 0,
+  :col-name :prglngth,
+  :mean 29.531229309203265,
+  :datatype :int64,
+  :skew -0.8663942065538816,
+  :standard-deviation 13.802522867903576,
+  :quartile-3 39.0,
+  :n-valid 13593,
+  :quartile-1 13.0,
+  :median 39.0,
+  :max 50.0,
+  :first 39,
+  :last 39})
+
+#+end_example
 
 * Footnotes
 

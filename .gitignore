@@ -9,3 +9,4 @@ _minted*
 *.pyg
 *.dat
 *.dct
+*svg-inkscape
