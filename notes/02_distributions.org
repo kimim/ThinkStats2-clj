@@ -24,7 +24,7 @@ function. Given a sequence of values, t:
 
 #+begin_src clojure :results pp :exports both
 (def t [1 1 2 2 2 3 3 3 3 4 5 5 6 7 7 8 8 8 9 9 9])
-(->> (frequencies t))
+(frequencies t)
 #+end_src
 
 #+RESULTS:
@@ -424,13 +424,13 @@ weeks.
 
 Now, I need to write a plotting function to plot two hisograms.
 
-#+begin_src clojure :results file :file ../test-data.svg :exports both
+#+begin_src clojure :results file :file ../first-other-compare.svg :exports both
 (chart/histogram (chart/normalize {"first" firsts "other" others})
-                 :filename "test-data.svg")
+                 :filename "first-other-compare.svg")
 #+end_src
 
 #+RESULTS:
-[[file:../test-data.svg]]
+[[file:../first-other-compare.svg]]
 
 * Summarizing distributions
 
