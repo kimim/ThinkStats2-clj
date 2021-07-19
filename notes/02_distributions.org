@@ -471,6 +471,7 @@ standard-deviation.
 
 #+begin_src clojure :results pp :exports both
 (-> fempreg-ds
+    (ds/filter #(= 1 (:outcome %)))
     (ds/select-columns [:prglngth])
     (ds/brief))
 #+end_src
@@ -480,19 +481,103 @@ standard-deviation.
 ({:min 0.0,
   :n-missing 0,
   :col-name :prglngth,
-  :mean 29.531229309203265,
+  :mean 38.56055968517709,
   :datatype :int64,
-  :skew -0.8663942065538816,
-  :standard-deviation 13.802522867903576,
+  :skew -2.855768973468403,
+  :standard-deviation 2.702343810070608,
   :quartile-3 39.0,
-  :n-valid 13593,
-  :quartile-1 13.0,
+  :n-valid 9148,
+  :quartile-1 39.0,
   :median 39.0,
   :max 50.0,
   :first 39,
   :last 39})
 
 #+end_example
+
+We can also calculate ~mean~, ~variance~ and ~standard-deviation~ with
+~tech.v3.datatype.functional~:
+
+#+begin_src clojure :results pp :exports both
+(-> fempreg-ds
+    (ds/filter #(= 1 (:outcome %)))
+    :prglngth
+    dfn/mean)
+#+end_src
+
+#+RESULTS:
+: 38.56055968517709
+:
+
+#+begin_src clojure :results pp :exports both
+(-> fempreg-ds
+    (ds/filter #(= 1 (:outcome %)))
+    :prglngth
+    dfn/variance)
+#+end_src
+
+#+RESULTS:
+: 7.302662067826841
+:
+
+#+begin_src clojure :results pp :exports both
+(-> fempreg-ds
+    (ds/filter #(= 1 (:outcome %)))
+    :prglngth
+    dfn/standard-deviation)
+#+end_src
+
+#+RESULTS:
+: 2.7023438100705914
+:
+
+For all live births, the mean pregnancy length is 38.6 weeks, the standard
+deviation is 2.7 weeks, which means we should expect deviations of 2-3 weeks to
+be common.
+
+* Effect Size
+
+An *effect size* is a summary statistic intended to describe the size of an
+effect. Cohen's d is a statistic intended to convey the size of the effect is to
+compare the difference between groups to the variability within groups; it is
+defined:
+
+#+begin_export latex
+\begin{equation}
+d = \frac{\bar{x}_1 - \bar{x}_2}{s}
+\end{equation}
+#+end_export
+
+where \(\bar{x}_1\) and $\bar{x}_2$ are the means of the groups and $s$ is the
+"pooled standard deviation".
+
+#+begin_src clojure :results pp :exports both
+(defn cohen-effect-size [group1 group2]
+  (let [diff (- (dfn/mean group1) (dfn/mean group2))
+        var1 (dfn/variance group1)
+        var2 (dfn/variance group2)
+        n1 (count group1)
+        n2 (count group2)
+        pooled-var (/ (+ (* var1 n1) (* var2 n2)) (+ n1 n2))]
+    (/ diff (Math/sqrt pooled-var))))
+(def firsts (-> fempreg-ds
+                (ds/filter #(and (= 1 (:outcome %))
+                                 (= 1 (:birthord %))))
+                :prglngth))
+(def others (-> fempreg-ds
+                (ds/filter #(and (= 1 (:outcome %))
+                                 (not= 1 (:birthord %))))
+                :prglngth))
+(cohen-effect-size firsts others)
+#+end_src
+
+#+RESULTS:
+: 0.02887904465444979
+:
+
+In this example, the difference in means is 0.029 standard deviations, which is
+small, comparing to the difference in height between men and women is about 1.7
+standard deviations.
 
 * Footnotes
 
