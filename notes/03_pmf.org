@@ -1,24 +1,31 @@
 #+TITLE: Chapter 3 Probability mass functions
 
+#+begin_src clojure :results silent
+(ns thinkstats2.pmfs)
+#+end_src
+
 * Pmfs
 
 Another way to represent a distribution is a *probability mass function(PMF)*,
 which maps from each value to its probability.
 
-A *probability* is a frequency expressed as a fraction of the sample size, $n$. To get from frequencies to probabilities, we divide through by $n$, which is called *normalization*.
+A *probability* is a frequency expressed as a fraction of the sample size, $n$. To
+get from frequencies to probabilities, we divide through by $n$, which is called
+*normalization*.
 
 We can map the division to each frequencies to get the probability:
 
 #+begin_src clojure :results pp :exports both
-(def hist (frequencies [1 2 2 3 3 4 5]))
-(def n (count hist))
+(def v1 [1 2 2 3 5 ])
+(def n (count v1))
+(def hist (frequencies v1))
 (->> hist
      (map #(vec [(first %) (/ (second %) n)]))
      (into {}))
 #+end_src
 
 #+RESULTS:
-: {1 1/5, 2 2/5, 3 2/5, 4 1/5, 5 1/5}
+: {1 1/5, 2 2/5, 3 1/5, 5 1/5}
 :
 
 We can define a function ~probabilities~ to get the result:
@@ -50,3 +57,72 @@ The ~probabilities~ is normalized so total probability is 1:
 #+RESULTS:
 : 1N
 :
+
+In clojure implementation, ~frequencies~ and ~probabilities~ has no difference,
+except that the value is integer and fraction respectively.
+
+To look up the probability associated with a value, use the value as key:
+
+#+begin_src clojure :results pp :exports both
+(def prob (probabilities [1 2 2 3 5]))
+(prob 2)
+#+end_src
+
+#+RESULTS:
+: 2/5
+:
+
+You cannot modify an existing map, but you will get a new one:
+
+#+begin_src clojure :results pp :exports both
+(def prob1 (update prob 2 + 0.2))
+(prob1 2)
+#+end_src
+
+#+RESULTS:
+: 0.6000000000000001
+:
+
+Or you can multiply a probability by a factor:
+
+#+begin_src clojure :results pp :exports both
+(def prob2 (update prob1 2 * 0.5))
+(prob2 2)
+#+end_src
+
+#+RESULTS:
+: 0.30000000000000004
+:
+
+
+Now the the result is not normalized; that is, the probabilities no longer add
+up to 1. To check, you can summarize the values:
+
+#+begin_src clojure :results pp :exports both
+(->> prob2
+     (map second)
+     (reduce +))
+#+end_src
+
+#+RESULTS:
+: 0.8999999999999999
+:
+
+To normalize:
+
+#+begin_src clojure :results pp :exports both
+(defn normalize [probmap]
+  (let [sum (->> probmap
+                 (map second)
+                 (reduce +))]
+    (reduce #(update %1 %2 / sum) probmap (keys probmap))))
+(->> (normalize prob2)
+     (map second)
+     (reduce +))
+#+end_src
+
+#+RESULTS:
+: 1.0000000000000002
+:
+
+* Plotting PMFs
