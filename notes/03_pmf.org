@@ -1,7 +1,16 @@
 #+TITLE: Chapter 3 Probability mass functions
 
 #+begin_src clojure :results silent
-(ns thinkstats2.pmfs)
+(ns thinkstats2.pmfs
+  (:require [clj-http.client :as client]
+            [clojure.java.io :as io]
+            [clojure.string :as str]
+            [tech.v3.dataset :as ds]
+            [tech.v3.datatype.functional :as dfn]
+            [tablecloth.api :as api]
+            [thinkstats2-clj.nsfg :as nsfg]
+            [thinkstats2-clj.chart :as chart])
+  (:import java.util.zip.GZIPInputStream))
 #+end_src
 
 * Pmfs
@@ -126,3 +135,78 @@ To normalize:
 :
 
 * Plotting PMFs
+
+We can plot PMFs in both bar graph and step graph.
+
+#+begin_src clojure :results none
+(def fempreg-ds (nsfg/as-dataset "2002FemPreg.dct" "2002FemPreg.dat"))
+(def firsts-pmf (-> fempreg-ds
+                    (ds/filter #(and (= 1 (:outcome %))
+                                     (= 1 (:birthord %))
+                                     (< 27 (:prglngth %) 46)))
+                    :prglngth
+                    probabilities))
+(def others-pmf (-> fempreg-ds
+                    (ds/filter #(and (= 1 (:outcome %))
+                                     (not= 1 (:birthord %))
+                                     (< 27 (:prglngth %) 46)))
+                    :prglngth
+                    probabilities))
+#+end_src
+
+#+begin_src clojure :results file :file ../first-other-prob-histogram.svg  :exports both
+(chart/histogram (chart/normalize {"first" firsts-pmf "other" others-pmf})
+                 :filename "first-other-prob-histogram.svg")
+#+end_src
+
+#+RESULTS:
+[[file:../first-other-prob-histogram.svg]]
+
+#+begin_src clojure :results file :file ../first-other-prob-step.svg  :exports both
+(chart/step (chart/normalize {"first" firsts-pmf "other" others-pmf})
+                 :filename "first-other-prob-step.svg")
+#+end_src
+
+#+RESULTS:
+[[file:../first-other-prob-step.svg]]
+
+* Other visualizations
+
+Because firsts and others a quite close, it makes sense to zoom in on the
+difference, as show in figure [[diffs]]:
+
+#+begin_src clojure :results pp :exports both
+(def weeks (range 35 46))
+(def diffs (->>  weeks
+                 (map #(vec [% (- (firsts-pmf %) (others-pmf %))]))
+                 (into {})))
+diffs
+#+end_src
+
+#+RESULTS:
+#+begin_example
+{39 -195797/2930625,
+ 40 -24196/20514375,
+ 36 154633/20514375,
+ 41 138983/4102875,
+ 43 141068/20514375,
+ 44 7222/20514375,
+ 35 80551/20514375,
+ 45 10634/20514375,
+ 38 -190217/20514375,
+ 42 28208/1367625,
+ 37 -105313/20514375}
+
+#+end_example
+
+#+begin_src clojure :results file :file ../weeks-diffs.svg  :exports both
+(chart/histogram (chart/normalize {"diffs" diffs}) :filename "weeks-diffs.svg")
+#+end_src
+
+#+name: diffs
+#+caption: diffs
+#+RESULTS:
+[[file:../weeks-diffs.svg]]
+
+This figure makes the pattern clearer: first babies are less likely to be born
+in week 39, and somewhat more likely to be born in weeks 41 and 42.

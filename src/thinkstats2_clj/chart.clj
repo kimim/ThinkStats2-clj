@@ -4,7 +4,8 @@
                      CategoryChart
                      PieChart
                      VectorGraphicsEncoder
-                     VectorGraphicsEncoder$VectorGraphicsFormat)))
+                     VectorGraphicsEncoder$VectorGraphicsFormat)
+   (java.awt Color)))
 
 (def svg-format VectorGraphicsEncoder$VectorGraphicsFormat/SVG)
 
@@ -31,5 +32,19 @@
     (.setTitle xy title)
     (doseq [serie series]
       (.addSeries xy (first serie) (keys (second serie)) (vals (second serie))))
+    (VectorGraphicsEncoder/saveVectorGraphic
+     xy filename svg-format)))
+
+(defn step
+  "Plot a histogram chart"
+  [series & {:keys [filename title width height]
+             :or {title "histogram" width 600 height 400}}]
+  (let [xy (CategoryChart. width height)]
+    (.setTitle xy title)
+    (.setOverlapped (.getStyler xy) true)
+    (doseq [serie series]
+      (.setFillColor
+       (.addSeries xy (first serie) (keys (second serie)) (vals (second serie)))
+       (Color. 0 0 0)))
     (VectorGraphicsEncoder/saveVectorGraphic
      xy filename svg-format)))
