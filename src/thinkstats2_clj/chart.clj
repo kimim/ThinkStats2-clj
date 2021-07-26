@@ -37,9 +37,9 @@
      xy filename svg-format)))
 
 (defn step
-  "Plot a histogram chart"
+  "Plot a stepped bar chart"
   [series & {:keys [filename title width height]
-             :or {title "histogram" width 600 height 400}}]
+             :or {title "step diagram" width 600 height 400}}]
   (let [xy (CategoryChart. width height)]
     (.setTitle xy title)
     (.setOverlapped (.getStyler xy) true)

@@ -172,6 +172,11 @@ We can plot PMFs in both bar graph and step graph.
 
 * Other visualizations
 
+Histograms and PMFs are useful while you are exploring data and trying to
+identify patterms and relationships. Once you have an idea what is going on, a
+good next step is to design a visualization that makes the patterns you have
+identified as clear as possible.
+
 Because firsts and others a quite close, it makes sense to zoom in on the
 difference, as show in figure [[diffs]]:
 
@@ -210,3 +215,116 @@ diffs
 
 This figure makes the pattern clearer: first babies are less likely to be born
 in week 39, and somewhat more likely to be born in weeks 41 and 42.
+
+* The class size paradox
+
+Suppose that a college offers 65 classes in a given semester, with the following
+distribution of sizes:
+
+#+begin_example
+ size       count
+ 5- 9       8
+10-14       8
+...
+#+end_example
+
+Here is the code, mean value is:
+
+#+begin_src clojure :results pp :exports both
+(def d {7 8, 12 8, 17 14, 22 4, 27 6, 32 12, 37 8, 42 3, 47 2})
+(/ (->> d
+        second
+        (reduce +))
+   (count d))
+#+end_src
+
+#+RESULTS:
+: 11/3
+:
+
+But if you survey a group of students, ask them how many students are in their
+classes, and compute the mean, you would think the average class was bigger:
+
+#+begin_src clojure :results pp :exports both
+(defn bias-pmf [pmf]
+  (->> pmf
+       (map #(vec [(first %) (* (second %) (first %))]))
+       (into {})
+       normalize))
+(bias-pmf d)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+{7 2/55,
+ 27 81/770,
+ 32 96/385,
+ 22 2/35,
+ 17 17/110,
+ 12 24/385,
+ 47 47/770,
+ 42 9/110,
+ 37 74/385}
+
+#+end_example
+
+For each class size, $x$, we multiply the probability by $x$, the number of
+students who observe that class size. The result is a new Pmf that represents
+the biased distribution.
+
+Now we can plot the actual and observed distributions:
+
+#+begin_src clojure :results file :file ../bias-pmf.svg :exports both
+(chart/step {"actual" (into (sorted-map) (normalize d))
+             "observed" (into (sorted-map) (bias-pmf d))}
+            :filename "bias-pmf.svg"
+            :title "Class size")
+#+end_src
+
+#+RESULTS:
+[[file:../bias-pmf.svg]]
+
+
+#+begin_src clojure :results pp :exports both
+(def k {5 3, 6 4, 3 2})
+(into (sorted-map) k)
+#+end_src
+
+#+RESULTS:
+: {3 2, 5 3, 6 4}
+:
+
+We can use the observed data and unbias the distribution:
+
+#+begin_src clojure :results pp :exports both
+(defn unbias-pmf [pmf]
+  (->> pmf
+       (map #(vec [(first %) (/ (second %) (first %))]))
+       (into (sorted-map))
+       normalize))
+(unbias-pmf d)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+{7 187311168/613351385,
+ 12 109264848/613351385,
+ 17 134974224/613351385,
+ 22 29799504/613351385,
+ 27 36421616/613351385,
+ 32 61461477/613351385,
+ 37 35437248/613351385,
+ 42 11706948/613351385,
+ 47 6974352/613351385}
+
+#+end_example
+
+#+begin_src clojure :results file :file ../unbias-pmf.svg :exports both
+(chart/step {"actual" (into (sorted-map) (normalize d))
+             "observed" (into (sorted-map) (unbias-pmf d))}
+            :filename "unbias-pmf.svg"
+            :title "Class size")
+#+end_src
+
+#+RESULTS:
+[[file:../unbias-pmf.svg]]
