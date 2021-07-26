@@ -73,12 +73,13 @@ fallback replace value 0.
 XChart[fn:1] is a light weight Java library for plotting data. With a small
 clojure wrapper, we can easily draw charts:
 
-#+begin_src clojure :results silent :file ../histogram.svg :exports both
-(chart/histogram (chart/normalize {"x" {3 2 2 7 1 9} "y" {1 5 2 3 3 8 4 9}}) :filename "histogram.svg")
+#+begin_src clojure :results file :output-dir figures :file histogram.svg :exports both
+(chart/histogram (chart/normalize {"x" {3 2 2 7 1 9} "y" {1 5 2 3 3 8 4 9}})
+                 :filename "notes/figures/histogram.svg")
 #+end_src
 
 #+RESULTS:
-[[file:../histogram.svg]]
+[[file:figures/histogram.svg]]
 
 
 * NSFG variables
@@ -119,13 +120,14 @@ clojure wrapper, we can easily draw charts:
 The distribution of ~birthwgt-lb~ is of the *normal* distribution, also called a
 *Caussian* distribution.
 
-#+begin_src clojure :results silent :file ../distribute-birthwgt.svg :exports both
-(chart/histogram (chart/normalize {"birthwgt-lb" freq}) :filename "distribute-birthwgt.svg"
+#+begin_src clojure :results file :output-dir figures :file distribute-birthwgt.svg :exports both
+(chart/histogram (chart/normalize {"birthwgt-lb" freq})
+                 :filename "notes/figures/distribute-birthwgt.svg"
                  :title "birthwgt-lb" :legend "birthwgt-lb")
 #+end_src
 
 #+RESULTS:
-[[file:../distribute-birthwgt.svg]]
+[[file:figures/distribute-birthwgt.svg]]
 
 #+begin_src clojure :results pp
 (def freq-oz (-> fempreg-ds
@@ -162,13 +164,14 @@ The distribution of ~birthwgt-lb~ is of the *normal* distribution, also called a
 
 Distribution of ~brithwgt-oz~ is expected to be *uniform*:
 
-#+begin_src clojure :results silent :file ../distribute-birthwgt-oz.svg :exports both
-(chart/histogram (chart/normalize {"birthwgt-oz" freq-oz})  :filename "distribute-birthwgt-oz.svg"
+#+begin_src clojure :results file :output-dir figures :file distribute-birthwgt-oz.svg :exports both
+(chart/histogram (chart/normalize {"birthwgt-oz" freq-oz})
+                 :filename "notes/figures/distribute-birthwgt-oz.svg"
                  :title "birthwgt-oz" :legend "birthwgt-oz")
 #+end_src
 
 #+RESULTS:
-[[file:../distribute-birthwgt-oz.svg]]
+[[file:figures/distribute-birthwgt-oz.svg]]
 
 #+begin_src clojure :results pp
 (def freq-age (-> fempreg-ds
@@ -222,13 +225,14 @@ Distribution of ~brithwgt-oz~ is expected to be *uniform*:
 
 The mother's age at the end of pregnancy:
 
-#+begin_src clojure :results silent :file ../distribute-agepreg.svg :exports both
-(chart/histogram (chart/normalize {"freq-age" freq-age}) :filename "distribute-agepreg.svg"
+#+begin_src clojure :results file :output-dir figures :file distribute-agepreg.svg :exports both
+(chart/histogram (chart/normalize {"freq-age" freq-age})
+                 :filename "notes/figures/distribute-agepreg.svg"
                  :legend "agepreg" :width 800 :height 600)
 #+end_src
 
 #+RESULTS:
-[[file:../distribute-agepreg.svg]]
+[[file:figures/distribute-agepreg.svg]]
 
 The distribution of pregnancy length shows that the most common value is 39
 weeks.
@@ -284,14 +288,14 @@ weeks.
 
 #+end_example
 
-#+begin_src clojure :results silent :file ../distribute-length.svg :exports both
+#+begin_src clojure :results file :output-dir figures :file distribute-length.svg :exports both
 (chart/histogram (chart/normalize {"freq-length" freq-length})
-                 :filename "distribute-length.svg"
+                 :filename "notes/figures/distribute-length.svg"
                  :width 800 :height 600)
 #+end_src
 
 #+RESULTS:
-[[file:../distribute-length.svg]]
+[[file:figures/distribute-length.svg]]
 
 #+begin_src clojure :results pp
 (def freq-1st (-> fempreg-ds
@@ -343,14 +347,14 @@ weeks.
 
 #+end_example
 
-#+begin_src clojure :results file :file ../distribute-1st-baby.svg :exports both
+#+begin_src clojure :results file :output-dir figures :file distribute-1st-baby.svg :exports both
 (chart/histogram (chart/normalize {"freq-1st" freq-1st})
-                 :filename "distribute-1st-baby.svg"
+                 :filename "notes/figures/distribute-1st-baby.svg"
                  :width 800 :height 600)
 #+end_src
 
 #+RESULTS:
-[[file:../distribute-1st-baby.svg]]
+[[file:figures/distribute-1st-baby.svg]]
 
 * Outliers
 
@@ -424,13 +428,13 @@ weeks.
 
 Now, I need to write a plotting function to plot two hisograms.
 
-#+begin_src clojure :results file :file ../first-other-compare.svg :exports both
+#+begin_src clojure :results file :output-dir figures :file first-other-compare.svg :exports both
 (chart/histogram (chart/normalize {"first" firsts "other" others})
-                 :filename "first-other-compare.svg")
+                 :filename "notes/figures/first-other-compare.svg")
 #+end_src
 
 #+RESULTS:
-[[file:../first-other-compare.svg]]
+[[file:figures/first-other-compare.svg]]
 
 * Summarizing distributions
 

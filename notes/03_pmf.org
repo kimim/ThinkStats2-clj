@@ -154,21 +154,21 @@ We can plot PMFs in both bar graph and step graph.
                     probabilities))
 #+end_src
 
-#+begin_src clojure :results file :file ../first-other-prob-histogram.svg  :exports both
+#+begin_src clojure :results file :output-dir figures :file first-other-prob-histogram.svg :exports both
 (chart/histogram (chart/normalize {"first" firsts-pmf "other" others-pmf})
-                 :filename "first-other-prob-histogram.svg")
+                 :filename "notes/figures/first-other-prob-histogram.svg")
 #+end_src
 
 #+RESULTS:
-[[file:../first-other-prob-histogram.svg]]
+[[file:figures/first-other-prob-histogram.svg]]
 
-#+begin_src clojure :results file :file ../first-other-prob-step.svg  :exports both
+#+begin_src clojure :results file :output-dir figures :file first-other-prob-step.svg  :exports both
 (chart/step (chart/normalize {"first" firsts-pmf "other" others-pmf})
-                 :filename "first-other-prob-step.svg")
+                 :filename "notes/figures/first-other-prob-step.svg")
 #+end_src
 
 #+RESULTS:
-[[file:../first-other-prob-step.svg]]
+[[file:figures/first-other-prob-step.svg]]
 
 * Other visualizations
 
@@ -204,14 +204,14 @@ diffs
 
 #+end_example
 
-#+begin_src clojure :results file :file ../weeks-diffs.svg  :exports both
-(chart/histogram (chart/normalize {"diffs" diffs}) :filename "weeks-diffs.svg")
+#+begin_src clojure :results file :output-dir figures :file weeks-diffs.svg  :exports both
+(chart/histogram (chart/normalize {"diffs" diffs}) :filename "notes/figures/weeks-diffs.svg")
 #+end_src
 
 #+name: diffs
 #+caption: diffs
 #+RESULTS:
-[[file:../weeks-diffs.svg]]
+[[file:figures/weeks-diffs.svg]]
 
 This figure makes the pattern clearer: first babies are less likely to be born
 in week 39, and somewhat more likely to be born in weeks 41 and 42.
@@ -274,15 +274,15 @@ the biased distribution.
 
 Now we can plot the actual and observed distributions:
 
-#+begin_src clojure :results file :file ../bias-pmf.svg :exports both
+#+begin_src clojure :results file :output-dir figures :file bias-pmf.svg :exports both
 (chart/step {"actual" (into (sorted-map) (normalize d))
              "observed" (into (sorted-map) (bias-pmf d))}
-            :filename "bias-pmf.svg"
+            :filename "notes/figures/bias-pmf.svg"
             :title "Class size")
 #+end_src
 
 #+RESULTS:
-[[file:../bias-pmf.svg]]
+[[file:figures/bias-pmf.svg]]
 
 
 #+begin_src clojure :results pp :exports both
@@ -319,12 +319,12 @@ We can use the observed data and unbias the distribution:
 
 #+end_example
 
-#+begin_src clojure :results file :file ../unbias-pmf.svg :exports both
+#+begin_src clojure :results file :output-dir figures :file unbias-pmf.svg :exports both
 (chart/step {"actual" (into (sorted-map) (normalize d))
              "observed" (into (sorted-map) (unbias-pmf d))}
-            :filename "unbias-pmf.svg"
+            :filename "notes/figures/unbias-pmf.svg"
             :title "Class size")
 #+end_src
 
 #+RESULTS:
-[[file:../unbias-pmf.svg]]
+[[file:figures/unbias-pmf.svg]]
