@@ -4,7 +4,8 @@
                      CategoryChart
                      PieChart
                      VectorGraphicsEncoder
-                     VectorGraphicsEncoder$VectorGraphicsFormat)
+                     VectorGraphicsEncoder$VectorGraphicsFormat
+                     CategorySeries$CategorySeriesRenderStyle)
    (java.awt Color)))
 
 (def svg-format VectorGraphicsEncoder$VectorGraphicsFormat/SVG)
@@ -43,8 +44,9 @@
     (.setTitle xy title)
     (.setOverlapped (.getStyler xy) true)
     (doseq [serie series]
-      (.setFillColor
-       (.addSeries xy (first serie) (keys (second serie)) (vals (second serie)))
-       (Color. 0 0 0)))
+      (let [ss (.addSeries xy (first serie) (keys (second serie)) (vals (second serie)))]
+        (.setChartCategorySeriesRenderStyle ss CategorySeries$CategorySeriesRenderStyle/SteppedBar)
+        ;; make fill colour transparent
+        (.setFillColor ss(Color. 0 0 0 0))))
     (VectorGraphicsEncoder/saveVectorGraphic
      xy filename svg-format)))
