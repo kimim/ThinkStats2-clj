@@ -205,7 +205,8 @@ diffs
 #+end_example
 
 #+begin_src clojure :results file :output-dir figures :file weeks-diffs.svg  :exports both
-(chart/histogram (chart/normalize {"diffs" diffs}) :filename "notes/figures/weeks-diffs.svg")
+(chart/histogram (chart/normalize {"diffs" diffs})
+                 :filename "notes/figures/weeks-diffs.svg")
 #+end_src
 
 #+name: diffs
@@ -328,3 +329,131 @@ We can use the observed data and unbias the distribution:
 
 #+RESULTS:
 [[file:figures/unbias-pmf.svg]]
+
+
+* Dataset indexing
+Now let's look ad row selection. To start, I create a column maps of
+random numbers and use it to initialize a dataset.
+
+#+begin_src clojure :results pp :exports both
+(def dataset (->> [:A :B]
+                  (map #(vec [%1 (repeatedly 4 rand)]))
+                  (into (sorted-map))
+                  ds/->dataset))
+dataset
+#+end_src
+
+#+RESULTS:
+#+begin_example
+_unnamed [4 2]:
+
+|         :A |         :B |
+|-----------:|-----------:|
+| 0.47938961 | 0.37385218 |
+| 0.40270313 | 0.58809862 |
+| 0.09545149 | 0.15548529 |
+| 0.47019306 | 0.27325350 |
+
+
+#+end_example
+
+By default, the rows and columns are numbered starting at zero. For
+example, select the second column(index 1):
+
+#+begin_src clojure :results pp :exports both
+(ds/select-columns-by-index dataset [1])
+#+end_src
+
+#+RESULTS:
+#+begin_example
+_unnamed [4 1]:
+
+|         :B |
+|-----------:|
+| 0.37385218 |
+| 0.58809862 |
+| 0.15548529 |
+| 0.27325350 |
+
+
+#+end_example
+
+select two rows:
+
+#+begin_src clojure :results pp :exports both
+(ds/select-rows-by-index dataset [2 3])
+#+end_src
+
+#+RESULTS:
+: _unnamed [2 2]:
+:
+: |         :A |         :B |
+: |-----------:|-----------:|
+: | 0.09545149 | 0.15548529 |
+: | 0.47019306 | 0.27325350 |
+:
+:
+
+and select both columns and rows:
+
+#+begin_src clojure :results pp :exports both
+(ds/select-by-index dataset [1] [0 -1])
+#+end_src
+
+#+RESULTS:
+: _unnamed [2 1]:
+:
+: |         :B |
+: |-----------:|
+: | 0.37385218 |
+: | 0.27325350 |
+:
+:
+
+you can provide column names.
+
+#+begin_src clojure :results pp :exports both
+(ds/select-columns dataset [:B])
+#+end_src
+
+#+RESULTS:
+#+begin_example
+_unnamed [4 1]:
+
+|         :B |
+|-----------:|
+| 0.37385218 |
+| 0.58809862 |
+| 0.15548529 |
+| 0.27325350 |
+
+
+#+end_example
+
+#+begin_src clojure :results pp :exports both
+(ds/select-rows dataset [1 2 3])
+#+end_src
+
+#+RESULTS:
+: _unnamed [3 2]:
+:
+: |         :A |         :B |
+: |-----------:|-----------:|
+: | 0.40270313 | 0.58809862 |
+: | 0.09545149 | 0.15548529 |
+: | 0.47019306 | 0.27325350 |
+:
+:
+
+Simple indexing selects a column, returning a ~tech.v3.dataset.column~
+object:
+
+#+begin_src clojure :results pp :exports both
+(dataset :A)
+#+end_src
+
+#+RESULTS:
+: #tech.v3.dataset.column<float64>[4]
+: :A
+: [0.4794, 0.4027, 0.09545, 0.4702]
+:
