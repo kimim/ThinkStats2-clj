@@ -10,3 +10,4 @@ Each chapter is written in orgmode file with text, code and images:
 - [[https://github.com/kimim/ThinkStats2-clj/blob/master/notes/01_exploratory_data_analysis.org][Chapter 01: Exploratory Data Analysis]]
 - [[https://github.com/kimim/ThinkStats2-clj/blob/master/notes/02_distributions.org][Chapter 02: Distributions]]
 - [[https://github.com/kimim/ThinkStats2-clj/blob/master/notes/03_pmf.org][Chapter 03: Probability mass functions]]
+- [[https://github.com/kimim/ThinkStats2-clj/blob/master/notes/04_cumulative_distribution_functions.org][Chapter 04 Cumulative distribution functions]]
