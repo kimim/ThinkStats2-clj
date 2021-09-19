@@ -1,7 +1,7 @@
 #+TITLE: Chapter 4 Cumulative distribution functions
 #+LATEX_CLASS: article
 
-#+begin_src clojure :results silent
+#+begin_src clojure :results silent :eval no-export
 (ns thinkstats2.probability-mass-functions
   (:require [clj-http.client :as client]
             [clojure.java.io :as io]
@@ -18,7 +18,7 @@
 
 Calculate the total weight of first and other babies:
 
-#+begin_src clojure :results value
+#+begin_src clojure :results value :eval no-export
 (def fempreg-ds (nsfg/as-dataset "2002FemPreg.dct" "2002FemPreg.dat"))
 (def fempreg-ds-with-totalwgt_lb
   (let [fempreg-ds-drop-special-wgt
@@ -59,12 +59,13 @@ Calculate the total weight of first and other babies:
 | #'thinkstats2.probability-mass-functions/firsts-wgt                  |
 | #'thinkstats2.probability-mass-functions/others-wgt                  |
 
-#+begin_src clojure :results file :output-dir figures :file first-other-totalwgt-prob-histogram.svg :exports both
+#+begin_src clojure :results file :output-dir figures :file first-other-totalwgt-prob-histogram.svg :exports both :eval no-export
 (chart/histogram {"first" firsts-wgt "other" others-wgt}
                  :filename "notes/figures/first-other-totalwgt-prob-histogram.svg")
 #+end_src
 
 #+CAPTION: PMF of birth weights. This figure shows a limitation of PMFs: they are hard to compare visually.
+#+NAME: first-other-totalwgt-prob-histogram
 #+RESULTS:
 [[file:figures/first-other-totalwgt-prob-histogram.svg]]
 
@@ -90,7 +91,7 @@ As an example, if the scores in the sequence were 55, 66, 77, 88 and
 99, and you got the 88, then your percentile rank would be ~100 * 4 / 5~
 which is 80.
 
-#+begin_src clojure :results pp :exports both
+#+begin_src clojure :results pp :exports both :eval no-export
 (defn percentile-rank [scores your-score]
   (* 100.0
      (/ (count (filter #(<= % your-score) scores))
@@ -105,7 +106,7 @@ which is 80.
 If you are given a percentile rank and you want to find the
 corresponding value, the result of this calculation is a *percentile*.
 
-#+begin_src clojure :results pp :exports both
+#+begin_src clojure :results pp :exports both :eval no-export
 (defn percentile [scores percentile-rank]
   (let [index (* percentile-rank
                  (/ (dec (count scores)) 100))]
@@ -126,7 +127,7 @@ and computes the corresponding value.
 *cumulative distribution function* (CDF) is the function that maps from
 a value to its percentile rank.
 
-#+begin_src clojure :results pp :exports both
+#+begin_src clojure :results pp :exports both :eval no-export
 (defn eval-cdf [sample x]
   (/ (count (filter #(<= % x) sample))
      (count sample)))
@@ -138,7 +139,7 @@ a value to its percentile rank.
 : 4/5
 :
 
-#+begin_src clojure :results pp :exports both
+#+begin_src clojure :results pp :exports both :eval no-export
 [(eval-cdf samples 0)
  (eval-cdf samples 1)
  (eval-cdf samples 2)
@@ -155,7 +156,7 @@ This function is almost identical to ~percentile-rank~, except that the
 result is a probability in the range 0 - 1 rather than a percentile
 rank in the range 0 - 100.
 
-#+begin_src clojure :results file :output-dir figures :file example-of-a-cdf.svg :exports both
+#+begin_src clojure :results file :output-dir figures :file example-of-a-cdf.svg :exports both :eval no-export
 (chart/step {"cdf" (zipmap samples (map #(eval-cdf samples %) samples))}
             :filename "notes/figures/example-of-a-cdf.svg")
 #+end_src
@@ -166,7 +167,7 @@ rank in the range 0 - 100.
 
 # TODO: step chart is not correct, if there is mising y data..
 
-#+begin_src clojure :results pp :exports both
+#+begin_src clojure :results pp :exports both :eval no-export
 (zipmap samples (map #(eval-cdf samples %) samples))
 #+end_src
 
@@ -175,3 +176,154 @@ rank in the range 0 - 100.
 :
 
 * Representing CDFs
+
+Now, we will define two functions:
+- ~cdf-prob~: given a value x, computes the probability p = CDF(x).
+- ~cdf-value~: given a probability p, computes the corresponding value,
+  x; that is, the *inverse CDF* of p.
+
+#+begin_src clojure :results pp :exports both :eval no-export
+(defn cdf-prob [samples x]
+  (/ (count (filter #(<= % x) samples))
+     (count samples)))
+(cdf-prob [1 2 2 2 3 4 5] 2)
+#+end_src
+
+#+RESULTS:
+: 4/7
+:
+
+#+begin_src clojure :results pp :exports both :eval no-export
+(defn cdf-value [samples p]
+  (let [index (* p (dec (count samples)))]
+    (nth (sort samples) index)))
+(cdf-value [1 2 2 2 3 4 5 6] 0.8)
+#+end_src
+
+#+RESULTS:
+: 4
+:
+
+The following code makes a CDF for the distribution of pregnancy
+lengths in the NSFG:
+
+#+begin_src clojure :results silent :exports both :eval no-export
+(def fempreg-ds (nsfg/as-dataset "2002FemPreg.dct" "2002FemPreg.dat"))
+(def live (-> fempreg-ds
+              (ds/filter #(some? (:birthwgt-lb %)))
+              (ds/filter #(< (:birthwgt-lb %) 20))))
+(def live-cdf-map
+  (->> (live :prglngth)
+       (map #(vec [% (cdf-prob (live :prglngth) %)]))
+       (into {})))
+#+end_src
+
+#+begin_src clojure :results file :output-dir figures :file cdf-of-preg-lng.svg :exports both :eval no-export
+(chart/step {"cdf" live-cdf-map}
+            :filename "notes/figures/cdf-of-preg-lng.svg")
+#+end_src
+
+#+CAPTION: CDF of pregnancy length
+#+NAME: cdf-of-preg-lng
+#+RESULTS:
+[[file:figures/cdf-of-preg-lng.svg]]
+
+# TODO: x axis label is to narrow!
+
+Figure [[cdf-of-preg-lng]] shows the result. One way to read a CDF is to
+look up percentiles. For example, it looks like about 10% of
+pregnancies are shorter than 36 weeks, and about 90% are shorter than
+41 weeks. The CDF also provides a visual representation of the shape
+of the distribution. Common values appear as steep or vertical
+selections of the CDF; in this example, the mode at 39 weeks is
+apparent. There are few values below 30 weeks, so the CDF in this
+range is flat.
+
+* Comparing CDFs
+
+#+begin_src clojure :results silent :eval no-export
+(def firsts (-> fempreg-ds
+                (ds/filter #(and (= 1 (:outcome %))
+                                 (= 1 (:birthord %))))))
+(def others (-> fempreg-ds
+                (ds/filter #(and (= 1 (:outcome %))
+                                 (not= 1 (:birthord %))))))
+#+end_src
+
+#+begin_src clojure :results silent :eval no-export
+(def fempreg-ds-with-totalwgt_lb
+  (let [fempreg-ds-drop-special-wgt
+        (-> fempreg-ds
+            (ds/filter #(not
+                         (or
+                          (contains? #{97 98 99} (:birthwgt-lb %))
+                          (contains? #{97 98 99} (:birthwgt-oz %))))))]
+    (ds/add-or-update-column
+     fempreg-ds-drop-special-wgt
+     :totalwgt-lb
+     (dfn/+
+      (fempreg-ds-drop-special-wgt :birthwgt-lb)
+      (dfn//
+       (fempreg-ds-drop-special-wgt :birthwgt-oz)
+       16.)))))
+
+(def firsts (-> fempreg-ds-with-totalwgt_lb
+                (ds/filter #(and (= 1 (:outcome %))
+                                 (= 1 (:birthord %))
+                                 (some? (:totalwgt-lb %))
+                                 (<= (:totalwgt-lb %) 16)))))
+(def others (-> fempreg-ds-with-totalwgt_lb
+                (ds/filter #(and (= 1 (:outcome %))
+                                 (not= 1 (:birthord %))
+                                 (some? (:totalwgt-lb %))
+                                 (<= (:totalwgt-lb %) 16)))))
+
+
+(def first-cdf-map
+  (->> (firsts :totalwgt-lb)
+       (map #(vec [% (cdf-prob (firsts :totalwgt-lb) %)]))
+       (into {})))
+(def other-cdf-map
+  (->> (others :totalwgt-lb)
+       (map #(vec [% (cdf-prob (others :totalwgt-lb) %)]))
+       (into {})))
+#+end_src
+
+
+#+begin_src clojure :results file :output-dir figures :file cdf-weight-first-other.svg :exports both :eval no-export
+(chart/step {"first" first-cdf-map "other" other-cdf-map}
+            :filename "notes/figures/cdf-weight-first-other.svg")
+#+end_src
+
+#+CAPTION: CDF of birth weights for first babies and others
+#+name: cdf-weight-first-other
+#+RESULTS:
+[[file:figures/cdf-weight-first-other.svg]]
+
+Figure [[cdf-weight-first-other]] shows the result. Compared to Figure
+[[first-other-totalwgt-prob-histogram]], this figure makes the shape
+of the distributions, and the differences between them, much
+clearer. We can see that first babies are slightly lighter throughout
+the distribution, with a larger discrepancy above the mean.
+
+* Percentile-based statistics
+
+Once you have computed a CDF, it is easy to compute percentiles and
+percentile ranks.
+- ~percentile-rank~: given a value x, computes its percentile rank,
+  100*CDF(x)
+- ~percentile~: given a percentile rank p, computes the corresponding
+  value, x, Equivalent to ~cdf-value(p/100)~.
+
+~percentile~ can be used to compute percentile-based summary
+statistics. For example, the 50th percentile is the value that divides
+the distribution in half, also known as the *median*. Like the mean,
+the median is a measure of the central tendency of a distribution.
+
+Another percentile-based statistic is the *interquartile range* (IQR),
+which is a measure of the spread of a distribution. The IQR is the
+difference between the 75th and 25th percentiles.
+
+There are also *quintiles* and *deciles*, all of them are *quantiles*.
+
+* Random numbers

@@ -139,7 +139,7 @@ To normalize:
 
 We can plot PMFs in both bar graph and step graph.
 
-#+begin_src clojure :results none
+#+begin_src clojure :results none :exports code
 (def fempreg-ds (nsfg/as-dataset "2002FemPreg.dct" "2002FemPreg.dat"))
 (def firsts-pmf (-> fempreg-ds
                     (ds/filter #(and (= 1 (:outcome %))

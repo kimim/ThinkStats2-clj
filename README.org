@@ -4,7 +4,7 @@ The purpose of this project is for me to study
 - [[https://github.com/techascent/tech.ml.dataset][tech.ml.dataset]]
 - [[https://github.com/scicloj/tablecloth][scicloj tablecloth]]
 
-Each chapter is written in orgmode file with text, code and images:
+Each chapter is written in orgmode file containing text, code and images:
 
 - [[https://github.com/kimim/ThinkStats2-clj/blob/master/notes/00_prepare_data.org][Chapter 00: Prepare data]]
 - [[https://github.com/kimim/ThinkStats2-clj/blob/master/notes/01_exploratory_data_analysis.org][Chapter 01: Exploratory Data Analysis]]
