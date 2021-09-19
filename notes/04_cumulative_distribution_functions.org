@@ -10,7 +10,8 @@
             [tech.v3.datatype.functional :as dfn]
             [tablecloth.api :as api]
             [thinkstats2-clj.nsfg :as nsfg]
-            [thinkstats2-clj.chart :as chart])
+            [thinkstats2-clj.chart :as chart]
+            [thinkstats2-clj.cdf :as cdf])
   (:import java.util.zip.GZIPInputStream))
 #+end_src
 
@@ -327,3 +328,103 @@ difference between the 75th and 25th percentiles.
 There are also *quintiles* and *deciles*, all of them are *quantiles*.
 
 * Random numbers
+
+#+begin_src clojure :results pp :exports both :eval no-export
+(def weights (-> fempreg-ds-with-totalwgt_lb
+                 (ds/filter #(and (= 1 (:outcome %))
+                                  (= 1 (:birthord %))
+                                  (some? (:totalwgt-lb %))
+                                  (<= (:totalwgt-lb %) 16)))
+                 :totalwgt-lb))
+
+(def first-cdf-map
+  (->> weights
+       (map #(vec [% (cdf-prob weights %)]))
+       (into {})))
+#+end_src
+
+#+RESULTS:
+: #'thinkstats2.probability-mass-functions/first-cdf-map
+:
+
+#+begin_src clojure :results pp :exports both :eval no-export
+(def sample (api/random weights 100))
+(def ranks-map
+  (->> sample
+       (map #(vec [(cdf/percentile-rank weights %) (cdf/cdf-prob weights %)]))
+       (into {})))
+#+end_src
+
+#+RESULTS:
+: #'thinkstats2.probability-mass-functions/ranks-map
+:
+
+#+begin_src clojure :results file :output-dir figures :file cdf-of-percentile-ranks-for-random-sample.svg :exports both :eval no-export
+(chart/step {"percent ranks" ranks-map}
+            :filename "notes/figures/cdf-of-percentile-ranks-for-random-sample.svg")
+#+end_src
+
+#+CAPTION: CDF of percentile ranks for a random sample of birth weights
+#+NAME: cdf-of-percentile-ranks-for-random-sample
+#+RESULTS:
+[[file:figures/cdf-of-percentile-ranks-for-random-sample.svg]]
+
+Figure [[cdf-of-percentile-ranks-for-random-sample]] shows the result. The
+CDF is approximately a straight line, which means that the
+distribution is uniform.
+
+What this figure shows is that 10% of the sample is below the 10th
+percentile, 20% is below the 20th percentile, and so on, exactly as we
+should expect.
+
+So, regardless of the shape of the CDF, the distribution of percentile
+ranks is uniform. This property is usefule, because it is the basis of
+a sample and efficient algorithm for generating random numbers with a
+given CDF. Here's how:
+- Choose a percentile rank uniformly from the range 0 - 100
+- Use ~percentile~ to find the value in the distribution that
+  corresponds to the percentile rank you chose.
+
+
+#+begin_src clojure :results pp :exports both :eval no-export
+(defn random [samples]
+  (let [index (rand-int 101)]
+    (cdf/percentile samples index)))
+#+end_src
+
+#+RESULTS:
+: #'thinkstats2.probability-mass-functions/random
+:
+
+Then you can get a random value like this:
+
+#+begin_src clojure :results pp :exports both :eval no-export
+(random weights)
+#+end_src
+
+#+RESULTS:
+: 6.75
+:
+
+We can also define ~sample~ function, which takes an interger, n, and
+returns a list of n values chosen at random from the CDF.
+
+#+begin_src clojure :results pp :exports both :eval no-export
+(defn sample [samples n]
+  (let [indices (take n (repeatedly #(rand-int 101)))]
+    (map #(cdf/percentile samples %) indices)))
+#+end_src
+
+#+RESULTS:
+: #'thinkstats2.probability-mass-functions/sample
+:
+
+Then you can do this:
+
+#+begin_src clojure :results pp :exports both :eval no-export
+(sample weights 10)
+#+end_src
+
+#+RESULTS:
+: (7.9375 2.3125 7.0 6.5 7.9375 7.5 7.0625 7.3125 8.8125 7.5)
+:
