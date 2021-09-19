@@ -1,4 +1,5 @@
 #+TITLE: Chapter 3 Probability mass functions
+#+LATEX_CLASS: article
 
 #+begin_src clojure :results silent
 (ns thinkstats2.pmfs

@@ -3,5 +3,5 @@
            {:main-opts ["-m" "thinkstats2.core"]}}
 
  :deps {clj-http/clj-http               {:mvn/version "3.12.3"}
-        scicloj/tablecloth              {:mvn/version "6.002"}
-        org.knowm.xchart/xchart         {:mvn/version "3.8.0"}}}
+        scicloj/tablecloth              {:mvn/version "6.012"}
+        org.knowm.xchart/xchart         {:mvn/version "3.8.1"}}}

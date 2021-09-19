@@ -31,7 +31,7 @@
              :or {title "histogram" width 600 height 400}}]
   (let [xy (CategoryChart. width height)]
     (.setTitle xy title)
-    (doseq [serie series]
+    (doseq [serie (normalize series)]
       (.addSeries xy (first serie) (keys (second serie)) (vals (second serie))))
     (VectorGraphicsEncoder/saveVectorGraphic
      xy filename svg-format)))
@@ -43,10 +43,10 @@
   (let [xy (CategoryChart. width height)]
     (.setTitle xy title)
     (.setOverlapped (.getStyler xy) true)
-    (doseq [serie series]
+    (doseq [serie (normalize series)]
       (let [ss (.addSeries xy (first serie) (keys (second serie)) (vals (second serie)))]
         (.setChartCategorySeriesRenderStyle ss CategorySeries$CategorySeriesRenderStyle/SteppedBar)
         ;; make fill colour transparent
-        (.setFillColor ss(Color. 0 0 0 0))))
+        (.setFillColor ss (Color. 0 0 0 0))))
     (VectorGraphicsEncoder/saveVectorGraphic
      xy filename svg-format)))

@@ -1,0 +1,177 @@
+#+TITLE: Chapter 4 Cumulative distribution functions
+#+LATEX_CLASS: article
+
+#+begin_src clojure :results silent
+(ns thinkstats2.probability-mass-functions
+  (:require [clj-http.client :as client]
+            [clojure.java.io :as io]
+            [clojure.string :as str]
+            [tech.v3.dataset :as ds]
+            [tech.v3.datatype.functional :as dfn]
+            [tablecloth.api :as api]
+            [thinkstats2-clj.nsfg :as nsfg]
+            [thinkstats2-clj.chart :as chart])
+  (:import java.util.zip.GZIPInputStream))
+#+end_src
+
+* The limits of PMFs
+
+Calculate the total weight of first and other babies:
+
+#+begin_src clojure :results value
+(def fempreg-ds (nsfg/as-dataset "2002FemPreg.dct" "2002FemPreg.dat"))
+(def fempreg-ds-with-totalwgt_lb
+  (let [fempreg-ds-drop-special-wgt
+        (-> fempreg-ds
+            (ds/filter #(not
+                         (or
+                          (contains? #{97 98 99} (:birthwgt-lb %))
+                          (contains? #{97 98 99} (:birthwgt-oz %))))))]
+    (ds/add-or-update-column
+     fempreg-ds-drop-special-wgt
+     :totalwgt-lb
+     (dfn/+
+      (fempreg-ds-drop-special-wgt :birthwgt-lb)
+      (dfn//
+       (fempreg-ds-drop-special-wgt :birthwgt-oz)
+       16.)))))
+
+(def firsts-wgt (-> fempreg-ds-with-totalwgt_lb
+                    (ds/filter #(and (= 1 (:outcome %))
+                                     (= 1 (:birthord %))
+                                     (some? (:totalwgt-lb %))
+                                     (<= (:totalwgt-lb %) 16)))
+                    :totalwgt-lb
+                    nsfg/probabilities))
+
+(def others-wgt (-> fempreg-ds-with-totalwgt_lb
+                    (ds/filter #(and (= 1 (:outcome %))
+                                     (not= 1 (:birthord %))
+                                     (some? (:totalwgt-lb %))
+                                     (<= (:totalwgt-lb %) 16)))
+                    :totalwgt-lb
+                    nsfg/probabilities))
+#+end_src
+
+#+RESULTS:
+| #'thinkstats2.probability-mass-functions/fempreg-ds                  |
+| #'thinkstats2.probability-mass-functions/fempreg-ds-with-totalwgt_lb |
+| #'thinkstats2.probability-mass-functions/firsts-wgt                  |
+| #'thinkstats2.probability-mass-functions/others-wgt                  |
+
+#+begin_src clojure :results file :output-dir figures :file first-other-totalwgt-prob-histogram.svg :exports both
+(chart/histogram {"first" firsts-wgt "other" others-wgt}
+                 :filename "notes/figures/first-other-totalwgt-prob-histogram.svg")
+#+end_src
+
+#+CAPTION: PMF of birth weights. This figure shows a limitation of PMFs: they are hard to compare visually.
+#+RESULTS:
+[[file:figures/first-other-totalwgt-prob-histogram.svg]]
+
+# TODO: How to make the x axis sparser?
+
+These problems can be mitigated by binning the data; that is, dividing
+the range of values into non-overlapping intervals and counting the
+number of values in each bin. Binning can be useful, but it is tricky
+to get the size of the bins right. If they are big enough to smooth
+out noise, they might also smooth out useful information.
+
+An alternative that avoids these problems is the cumulative
+distribution function (CDF)
+
+* Percentiles
+
+*percentile rank* is the position of your raw score in the fraction of
+people who scored lower than you or the same. So if you are "in the
+90th percentile," you did as well as or better than 90% of the people
+who took the exam.
+
+As an example, if the scores in the sequence were 55, 66, 77, 88 and
+99, and you got the 88, then your percentile rank would be ~100 * 4 / 5~
+which is 80.
+
+#+begin_src clojure :results pp :exports both
+(defn percentile-rank [scores your-score]
+  (* 100.0
+     (/ (count (filter #(<= % your-score) scores))
+        (count scores))))
+(percentile-rank [55 66 77 88 99] 88)
+#+end_src
+
+#+RESULTS:
+: 80.0
+:
+
+If you are given a percentile rank and you want to find the
+corresponding value, the result of this calculation is a *percentile*.
+
+#+begin_src clojure :results pp :exports both
+(defn percentile [scores percentile-rank]
+  (let [index (* percentile-rank
+                 (/ (dec (count scores)) 100))]
+    (nth (sort scores) index)))
+(percentile [77 88 99 55 66] 80)
+#+end_src
+
+#+RESULTS:
+: 88
+:
+
+To summarize, ~percentile-rank~ takes a value and computes its
+percentile rank in a set of values; ~percentile~ takes a percentile rank
+and computes the corresponding value.
+
+* CDFs
+
+*cumulative distribution function* (CDF) is the function that maps from
+a value to its percentile rank.
+
+#+begin_src clojure :results pp :exports both
+(defn eval-cdf [sample x]
+  (/ (count (filter #(<= % x) sample))
+     (count sample)))
+(def samples [1 2 2 3 5])
+(eval-cdf samples 3)
+#+end_src
+
+#+RESULTS:
+: 4/5
+:
+
+#+begin_src clojure :results pp :exports both
+[(eval-cdf samples 0)
+ (eval-cdf samples 1)
+ (eval-cdf samples 2)
+ (eval-cdf samples 3)
+ (eval-cdf samples 4)
+ (eval-cdf samples 5)]
+#+end_src
+
+#+RESULTS:
+: [0 1/5 3/5 4/5 4/5 1]
+:
+
+This function is almost identical to ~percentile-rank~, except that the
+result is a probability in the range 0 - 1 rather than a percentile
+rank in the range 0 - 100.
+
+#+begin_src clojure :results file :output-dir figures :file example-of-a-cdf.svg :exports both
+(chart/step {"cdf" (zipmap samples (map #(eval-cdf samples %) samples))}
+            :filename "notes/figures/example-of-a-cdf.svg")
+#+end_src
+
+#+CAPTION: Example of a CDF
+#+RESULTS:
+[[file:figures/example-of-a-cdf.svg]]
+
+# TODO: step chart is not correct, if there is mising y data..
+
+#+begin_src clojure :results pp :exports both
+(zipmap samples (map #(eval-cdf samples %) samples))
+#+end_src
+
+#+RESULTS:
+: {1 1/5, 2 3/5, 3 4/5, 5 1}
+:
+
+* Representing CDFs

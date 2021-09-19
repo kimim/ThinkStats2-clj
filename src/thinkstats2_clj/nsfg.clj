@@ -70,3 +70,10 @@
                    {:layout :as-rows
                     :column-names header
                     :dataset-name "2002FemPreg"}))))
+
+(defn probabilities [coll]
+  (let [n (count coll)]
+    (->> coll
+         frequencies
+         (map #(vec [(first %) (/ (second %) n)]))
+         (into {}))))

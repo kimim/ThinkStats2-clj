@@ -10,3 +10,12 @@ _minted*
 *.dct
 *svg-inkscape
 *.fls
+*.classpath
+*.aux
+*.bcf
+*.fdb_latexmk
+*.log
+*.out
+*.xdv
+*.run.xml
+*.blg
