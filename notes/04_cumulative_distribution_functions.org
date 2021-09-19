@@ -1,4 +1,4 @@
-#+TITLE: Chapter 04 Cumulative distribution functions
+#+TITLE: Chapter 4 Cumulative distribution functions
 #+LATEX_CLASS: article
 
 #+begin_src clojure :results silent
