@@ -1,0 +1,48 @@
+#+TITLE: Chapter 5 Modeling distributions
+#+LATEX_CLASS: article
+
+The distributions we have used so far are called *empirical
+distributions* because they are based on empirical observations, which
+are necessarily finite samples.
+
+The alternative is an *analytic distribution*, which is characterized by
+a CDF that is a mathematical function. Analytic distributions can be
+used to model empirical distributions. In this context, a *model* is a
+simplification that leaves out unneeded details.
+
+#+begin_src clojure :results silent :eval no-export
+(ns thinkstats2.modeling-distributions
+  (:require [clj-http.client :as client]
+            [clojure.java.io :as io]
+            [clojure.string :as str]
+            [tech.v3.dataset :as ds]
+            [tech.v3.datatype.functional :as dfn]
+            [tablecloth.api :as api]
+            [thinkstats2-clj.nsfg :as nsfg]
+            [thinkstats2-clj.chart :as chart]
+            [thinkstats2-clj.cdf :as cdf])
+  (:import java.util.zip.GZIPInputStream))
+#+end_src
+
+* The exponential distribution
+
+The CDF of the exponential distribution is
+
+\begin{equation}
+CDF(x) = 1 - e^{-\lambda x}
+\end{equation}
+
+The parameter, $\lambda$, determines the shape of the distribution.
+
+#+begin_src clojure :results file graphics :output-dir figures :file exp-distribution.svg :exports both :eval no-export
+(def xs (range 0 3 0.1))
+(chart/plot {:file "notes/figures/exp-distribution.svg"
+             :title "Exponential CDF"
+             :series {"λ=0.5" [xs (map #(- 1 (Math/exp (- (* % 0.5)))) xs)]
+                      "λ=1.0" [xs (map #(- 1 (Math/exp (- (* % 1.0)))) xs)]
+                      "λ=2.0" [xs (map #(- 1 (Math/exp (- (* % 2.0)))) xs)]}})
+#+end_src
+
+#+CAPTION: CDFs of exponential distributions with various parameters.
+#+RESULTS:
+[[file:figures/exp-distribution.svg]]
