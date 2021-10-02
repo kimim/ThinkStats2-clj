@@ -17,10 +17,11 @@ simplification that leaves out unneeded details.
             [clojure.string :as str]
             [tech.v3.dataset :as ds]
             [tech.v3.datatype.functional :as dfn]
-            [tablecloth.api :as api]
+            [tablecloth.api :as tablecloth]
             [thinkstats2-clj.nsfg :as nsfg]
             [thinkstats2-clj.chart :as chart]
-            [thinkstats2-clj.cdf :as cdf])
+            [thinkstats2-clj.cdf :as cdf]
+            [thinkstats2-clj.data :as data])
   (:import java.util.zip.GZIPInputStream))
 #+end_src
 
@@ -35,7 +36,7 @@ CDF(x) = 1 - e^{-\lambda x}
 The parameter, $\lambda$, determines the shape of the distribution.
 
 #+begin_src clojure :results file graphics :output-dir figures :file exp-distribution.svg :exports both :eval no-export
-(def xs (range 0 3 0.1))
+(def xs (range 0 3 1/10))
 (chart/plot {:file "notes/figures/exp-distribution.svg"
              :title "Exponential CDF"
              :series {"λ=0.5" [xs (map #(- 1 (Math/exp (- (* % 0.5)))) xs)]
@@ -46,3 +47,93 @@ The parameter, $\lambda$, determines the shape of the distribution.
 #+CAPTION: CDFs of exponential distributions with various parameters.
 #+RESULTS:
 [[file:figures/exp-distribution.svg]]
+
+In the real world, exponential distributions come up when we look at a
+series of events and measure the times between events, called
+*interarrival time*. If the events are equally likely to occur at any
+time, the distribution of interarrival times tends to look like an
+exponential distribution.
+
+Firstly, we will fetch the data from Allen Downey's github repo:
+
+#+begin_src clojure :results silent
+(data/fetch-data! "https://raw.githubusercontent.com/AllenDowney/ThinkStats2/master/code/babyboom.dat")
+#+end_src
+
+Then, extract the dataset from the data:
+
+#+begin_src clojure :results pp :exports both :eval no-export
+(def babyboom (ds/->dataset "babyboom.dat" {:file-type :tsv
+                                            :header-row? false
+                                            :n-initial-skip-rows 59}))
+
+(def babyboom (tablecloth/separate-column babyboom "column-0"
+                                          [:time :sex :weight :minutes]
+                                          (fn [row]
+                                            (-> row
+                                                (str/trim)
+                                                (str/split #"\s+")
+                                                (->>
+                                                 (map #(Integer/parseInt %)))))))
+(ds/head babyboom)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+_unnamed [5 4]:
+
+| :time | :sex | :weight | :minutes |
+|------:|-----:|--------:|---------:|
+|     5 |    1 |    3837 |        5 |
+|   104 |    1 |    3334 |       64 |
+|   118 |    2 |    3554 |       78 |
+|   155 |    2 |    3838 |      115 |
+|   257 |    2 |    3625 |      177 |
+
+
+#+end_example
+
+#+begin_src clojure :results file graphics :output-dir figures :file cdf-of-interarrival-times.svg :exports both :eval no-export
+(def samples (->> (ds/column babyboom :minutes)
+                  (partition 2 1)
+                  (map #(- (second %) (first %)))))
+
+(chart/step {"cdf" (zipmap samples (cdf/cdf samples))}
+            :filename "notes/figures/cdf-of-interarrival-times.svg")
+#+end_src
+
+#+RESULTS:
+[[file:figures/cdf-of-interarrival-times.svg]]
+
+One way is to plot the *complementary CDF*, which is $1-CDF(x)$, on a
+log-y scale. FOr data from an exponential distribution, the result is
+a straight line.
+
+If you plot the complementary CDF(CCDF) of a dataset that you think is
+exponential, you expect to see a function like:
+
+\begin{equation}
+y \approx e^{-\lambda x}
+\end{equation}
+
+Taking the log of both sides yields:
+
+\begin{equation}
+log y \approx -\lambda x
+\end{equation}
+
+
+#+begin_src clojure :results file graphics :output-dir figures :file cdf-of-interarrival-log-y-scale.svg :exports both :eval no-export
+(chart/step {"cdf" (zipmap samples (map #(Math/log (- 1.1 %)) (cdf/cdf
+samples)))}
+            :filename "notes/figures/cdf-of-interarrival-log-y-scale.svg")
+#+end_src
+
+#+RESULTS:
+[[file:figures/cdf-of-interarrival-log-y-scale.svg]]
+
+The parameter, λ, can be interpreted as a rate; that is, the number of
+events that occur, on average, in a unit of time. In this example, 44
+babies are born in 24 hours, so the rate is λ = 0.0306 births per
+minute. The mean of an exponential distribution is 1/λ, so the mean
+time between births is 32.7 minutes.

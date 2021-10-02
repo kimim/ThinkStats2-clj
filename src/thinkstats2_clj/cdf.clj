@@ -25,3 +25,6 @@
 (defn sample [samples n]
   (let [indices (take n (repeatedly #(rand-int 101)))]
     (map #(percentile samples %) indices)))
+
+(defn cdf [samples]
+  (map #(cdf-prob samples %) samples))
