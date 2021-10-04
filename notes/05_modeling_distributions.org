@@ -99,7 +99,8 @@ _unnamed [5 4]:
                   (map #(- (second %) (first %)))
                   (sort)))
 
-(chart/step {:series {"cdf" [samples (cdf/cdf samples)]}
+(chart/step {:series {"CDF" [samples (cdf/cdf samples)]}
+             :title "Interarrival times"
              :file "notes/figures/cdf-of-interarrival-times.svg"})
 #+end_src
 
@@ -126,8 +127,9 @@ log y \approx -\lambda x
 
 
 #+begin_src clojure :results file graphics :output-dir figures :file cdf-of-interarrival-log-y-scale.svg :exports both :eval no-export
-(chart/step {:series {"cdf" [samples (map #(Math/log (- 1.1 %)) (cdf/cdf
+(chart/step {:series {"CCDF" [samples (map #(Math/log (- 1.1 %)) (cdf/cdf
                                                                  samples))]}
+             :title "Interarrival time log-y"
              :file "notes/figures/cdf-of-interarrival-log-y-scale.svg"})
 #+end_src
 
@@ -139,3 +141,12 @@ events that occur, on average, in a unit of time. In this example, 44
 babies are born in 24 hours, so the rate is λ = 0.0306 births per
 minute. The mean of an exponential distribution is 1/λ, so the mean
 time between births is 32.7 minutes.
+
+* The normal distribution
+
+The *normal distribution*, also called *Gaussian*, is commonly used
+because it describes many phenomena, at least approximately.
+
+The normal distribution is characterized by two parameters: the mean,
+μ, and standard deviation δ. The normal distribution with μ = 0 and δ
+= 1 is called the *standard normal distribution*.

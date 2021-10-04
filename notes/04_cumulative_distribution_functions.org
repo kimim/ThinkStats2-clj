@@ -402,7 +402,7 @@ Then you can get a random value like this:
 #+end_src
 
 #+RESULTS:
-: 9.5
+: 6.0
 :
 
 We can also define ~sample~ function, which takes an interger, n, and
@@ -425,5 +425,5 @@ Then you can do this:
 #+end_src
 
 #+RESULTS:
-: (7.5625 0.125 7.75 7.25 9.625 7.6875 7.75 7.3125 7.4375 2.3125)
+: (8.375 4.625 6.3125 5.25 6.75 8.5 6.25 9.125 3.4375 7.75)
 :

@@ -58,7 +58,6 @@
      :or {title "XY Chart" width 600 height 400}}]
    (let [xy (XYChart. width height)]
      (.setTitle xy title)
-     (.setLegendPosition (.getStyler xy) Styler$LegendPosition/InsideNW);
      (.setDefaultSeriesRenderStyle (.getStyler xy) XYSeries$XYSeriesRenderStyle/Step)
      (doseq [serie series]
        (let [ss (.addSeries xy (first serie) (first (second serie))
