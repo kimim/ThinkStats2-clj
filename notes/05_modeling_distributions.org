@@ -96,14 +96,16 @@ _unnamed [5 4]:
 #+begin_src clojure :results file graphics :output-dir figures :file cdf-of-interarrival-times.svg :exports both :eval no-export
 (def samples (->> (ds/column babyboom :minutes)
                   (partition 2 1)
-                  (map #(- (second %) (first %)))))
+                  (map #(- (second %) (first %)))
+                  (sort)))
 
-(chart/step {"cdf" (zipmap samples (cdf/cdf samples))}
-            :filename "notes/figures/cdf-of-interarrival-times.svg")
+(chart/step {:series {"cdf" [samples (cdf/cdf samples)]}
+             :file "notes/figures/cdf-of-interarrival-times.svg"})
 #+end_src
 
 #+RESULTS:
 [[file:figures/cdf-of-interarrival-times.svg]]
+
 
 One way is to plot the *complementary CDF*, which is $1-CDF(x)$, on a
 log-y scale. FOr data from an exponential distribution, the result is
@@ -124,9 +126,9 @@ log y \approx -\lambda x
 
 
 #+begin_src clojure :results file graphics :output-dir figures :file cdf-of-interarrival-log-y-scale.svg :exports both :eval no-export
-(chart/step {"cdf" (zipmap samples (map #(Math/log (- 1.1 %)) (cdf/cdf
-samples)))}
-            :filename "notes/figures/cdf-of-interarrival-log-y-scale.svg")
+(chart/step {:series {"cdf" [samples (map #(Math/log (- 1.1 %)) (cdf/cdf
+                                                                 samples))]}
+             :file "notes/figures/cdf-of-interarrival-log-y-scale.svg"})
 #+end_src
 
 #+RESULTS:

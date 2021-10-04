@@ -158,8 +158,8 @@ result is a probability in the range 0 - 1 rather than a percentile
 rank in the range 0 - 100.
 
 #+begin_src clojure :results file :output-dir figures :file example-of-a-cdf.svg :exports both :eval no-export
-(chart/step {"cdf" (zipmap samples (map #(eval-cdf samples %) samples))}
-            :filename "notes/figures/example-of-a-cdf.svg")
+(chart/step {:series {"cdf" [(sort samples) (map #(eval-cdf (sort samples) %) (sort samples))]}
+             :file "notes/figures/example-of-a-cdf.svg"})
 #+end_src
 
 #+CAPTION: Example of a CDF
@@ -213,15 +213,14 @@ lengths in the NSFG:
 (def live (-> fempreg-ds
               (ds/filter #(some? (:birthwgt-lb %)))
               (ds/filter #(< (:birthwgt-lb %) 20))))
-(def live-cdf-map
-  (->> (live :prglngth)
-       (map #(vec [% (cdf-prob (live :prglngth) %)]))
-       (into {})))
+(def live-prglngth
+  (->> (live :prglngth) (sort)))
 #+end_src
 
 #+begin_src clojure :results file :output-dir figures :file cdf-of-preg-lng.svg :exports both :eval no-export
-(chart/step {"cdf" live-cdf-map}
-            :filename "notes/figures/cdf-of-preg-lng.svg")
+(chart/step {:series {"prglngth" [live-prglngth (map #(cdf-prob live-prglngth %) live-prglngth)]}
+             :title "Pregnancy length"
+             :file "notes/figures/cdf-of-preg-lng.svg"})
 #+end_src
 
 #+CAPTION: CDF of pregnancy length
@@ -280,20 +279,21 @@ range is flat.
                                  (<= (:totalwgt-lb %) 16)))))
 
 
-(def first-cdf-map
-  (->> (firsts :totalwgt-lb)
-       (map #(vec [% (cdf-prob (firsts :totalwgt-lb) %)]))
-       (into {})))
-(def other-cdf-map
-  (->> (others :totalwgt-lb)
-       (map #(vec [% (cdf-prob (others :totalwgt-lb) %)]))
-       (into {})))
+(def first-wgt
+  (->> (firsts :totalwgt-lb) (sort)))
+
+(def other-wgt
+  (->> (others :totalwgt-lb) (sort)))
 #+end_src
 
+#+RESULTS:
+: class clojure.lang.Compiler$CompilerException
 
 #+begin_src clojure :results file :output-dir figures :file cdf-weight-first-other.svg :exports both :eval no-export
-(chart/step {"first" first-cdf-map "other" other-cdf-map}
-            :filename "notes/figures/cdf-weight-first-other.svg")
+(chart/step {:series {"first" [first-wgt (map #(cdf-prob first-wgt %) first-wgt)]
+                      "other" [other-wgt (map #(cdf-prob other-wgt %) other-wgt)]}
+             :title "Birth weight"
+             :file "notes/figures/cdf-weight-first-other.svg"})
 #+end_src
 
 #+CAPTION: CDF of birth weights for first babies and others
@@ -348,20 +348,19 @@ There are also *quintiles* and *deciles*, all of them are *quantiles*.
 :
 
 #+begin_src clojure :results pp :exports both :eval no-export
-(def sample (api/random weights 100))
-(def ranks-map
+(def sample (sort (api/random weights 100)))
+(def ranks
   (->> sample
-       (map #(vec [(cdf/percentile-rank weights %) (cdf/cdf-prob weights %)]))
-       (into {})))
+       (map #(cdf/percentile-rank weights %))))
 #+end_src
 
 #+RESULTS:
-: #'thinkstats2.probability-mass-functions/ranks-map
+: #'thinkstats2.probability-mass-functions/ranks
 :
 
 #+begin_src clojure :results file :output-dir figures :file cdf-of-percentile-ranks-for-random-sample.svg :exports both :eval no-export
-(chart/step {"percent ranks" ranks-map}
-            :filename "notes/figures/cdf-of-percentile-ranks-for-random-sample.svg")
+(chart/step {:series {"percent ranks" [sample ranks]}
+             :file "notes/figures/cdf-of-percentile-ranks-for-random-sample.svg"})
 #+end_src
 
 #+CAPTION: CDF of percentile ranks for a random sample of birth weights
@@ -403,7 +402,7 @@ Then you can get a random value like this:
 #+end_src
 
 #+RESULTS:
-: 6.75
+: 9.5
 :
 
 We can also define ~sample~ function, which takes an interger, n, and
@@ -426,5 +425,5 @@ Then you can do this:
 #+end_src
 
 #+RESULTS:
-: (7.9375 2.3125 7.0 6.5 7.9375 7.5 7.0625 7.3125 8.8125 7.5)
+: (7.5625 0.125 7.75 7.25 9.625 7.6875 7.75 7.3125 7.4375 2.3125)
 :
