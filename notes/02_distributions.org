@@ -8,8 +8,9 @@
             [tech.v3.dataset :as ds]
             [tech.v3.datatype.functional :as dfn]
             [tablecloth.api :as api]
-            [thinkstats2-clj.nsfg :as nsfg]
-            [thinkstats2-clj.chart :as chart])
+            [clj-chart.chart :as chart]
+            [clj-chart.plot :refer [store!]]
+            [thinkstats2-clj.nsfg :as nsfg])
   (:import java.util.zip.GZIPInputStream))
 #+end_src
 
@@ -60,7 +61,7 @@ fallback replace value 0.
 
 ~keys~ returns a list of the object values in hist:
 
-#+begin_src clojure :results pp :exports both
+#+begin_src clojure :results pp :exports both :eval no-export
 (keys hist)
 #+end_src
 
@@ -68,14 +69,25 @@ fallback replace value 0.
 : (1 2 3 5)
 :
 
+#+begin_src clojure :results pp :exports both :eval no-export
+(vals hist)
+#+end_src
+
+#+RESULTS:
+: (1 2 1 1)
+:
+
 * Plotting histograms
 
 XChart[fn:1] is a light weight Java library for plotting data. With a small
 clojure wrapper, we can easily draw charts:
 
-#+begin_src clojure :results file :output-dir figures :file histogram.svg :exports both
-(chart/histogram (chart/normalize {"x" {3 2 2 7 1 9} "y" {1 5 2 3 3 8 4 9}})
-                 :filename "notes/figures/histogram.svg")
+#+begin_src clojure :results file :output-dir figures :file histogram.svg :exports both :eval no-export
+(let [chart (chart/bar {:title "Histogram Bar Chart"
+                      :series [{:name "Histogram"
+                                :xs (keys hist)
+                                :ys (vals hist)}]})]
+  (store! chart nil "notes/figures/histogram.svg"))
 #+end_src
 
 #+RESULTS:
@@ -84,7 +96,7 @@ clojure wrapper, we can easily draw charts:
 
 * NSFG variables
 
-#+begin_src clojure :results pp
+#+begin_src clojure :results pp :eval no-export
 (def fempreg-ds (nsfg/as-dataset "2002FemPreg.dct" "2002FemPreg.dat"))
 (def freq (-> fempreg-ds
               (ds/set-dataset-name "2002FemPreg")
@@ -120,16 +132,20 @@ clojure wrapper, we can easily draw charts:
 The distribution of ~birthwgt-lb~ is of the *normal* distribution, also called a
 *Caussian* distribution.
 
-#+begin_src clojure :results file :output-dir figures :file distribute-birthwgt.svg :exports both
-(chart/histogram (chart/normalize {"birthwgt-lb" freq})
-                 :filename "notes/figures/distribute-birthwgt.svg"
-                 :title "birthwgt-lb" :legend "birthwgt-lb")
+#+begin_src clojure :results file :output-dir figures :file distribute-birthwgt.svg :exports both :eval no-export
+(let [chart (chart/bar {:title "Histogram Bar Chart"
+                  :x-axis "pounds"
+                  :y-axis "frequency"
+                  :series [{:name "birthwgt_lb"
+                            :xs (sort (keys freq))
+                            :ys (map freq (sort (keys freq)) )}]})]
+  (store! chart nil "notes/figures/distribute-birthwgt.svg"))
 #+end_src
 
 #+RESULTS:
 [[file:figures/distribute-birthwgt.svg]]
 
-#+begin_src clojure :results pp
+#+begin_src clojure :results pp :eval no-export
 (def freq-oz (-> fempreg-ds
                  (ds/set-dataset-name "2002FemPreg")
                  (ds/filter #(and (= 1 (:outcome %))
@@ -164,16 +180,20 @@ The distribution of ~birthwgt-lb~ is of the *normal* distribution, also called a
 
 Distribution of ~brithwgt-oz~ is expected to be *uniform*:
 
-#+begin_src clojure :results file :output-dir figures :file distribute-birthwgt-oz.svg :exports both
-(chart/histogram (chart/normalize {"birthwgt-oz" freq-oz})
-                 :filename "notes/figures/distribute-birthwgt-oz.svg"
-                 :title "birthwgt-oz" :legend "birthwgt-oz")
+#+begin_src clojure :results file :output-dir figures :file distribute-birthwgt-oz.svg :exports both :eval no-export
+(let [chart (chart/bar {:title "Histogram Bar Chart"
+                  :x-axis "pounds"
+                  :y-axis "frequency"
+                  :series [{:name "Birth Weight"
+                            :xs (sort (keys freq-oz))
+                            :ys (map freq-oz (sort (keys freq-oz)) )}]})]
+  (store! chart nil "notes/figures/distribute-birthwgt-oz.svg"))
 #+end_src
 
 #+RESULTS:
 [[file:figures/distribute-birthwgt-oz.svg]]
 
-#+begin_src clojure :results pp
+#+begin_src clojure :results pp :eval no-export
 (def freq-age (-> fempreg-ds
                   (ds/set-dataset-name "2002FemPreg")
                   (ds/filter #(and (= 1 (:outcome %))))
@@ -225,10 +245,13 @@ Distribution of ~brithwgt-oz~ is expected to be *uniform*:
 
 The mother's age at the end of pregnancy:
 
-#+begin_src clojure :results file :output-dir figures :file distribute-agepreg.svg :exports both
-(chart/histogram (chart/normalize {"freq-age" freq-age})
-                 :filename "notes/figures/distribute-agepreg.svg"
-                 :legend "agepreg" :width 800 :height 600)
+#+begin_src clojure :results file :output-dir figures :file distribute-agepreg.svg :exports both :eval no-export
+(let [chart (chart/bar {:x-axis "frequency"
+                  :y-axis "years"
+                  :series [{:name "agepreg"
+                            :xs (sort (keys freq-age))
+                            :ys (map freq-age (sort (keys freq-age)) )}]})]
+  (store! chart nil "notes/figures/distribute-agepreg.svg"))
 #+end_src
 
 #+RESULTS:
@@ -289,9 +312,12 @@ weeks.
 #+end_example
 
 #+begin_src clojure :results file :output-dir figures :file distribute-length.svg :exports both
-(chart/histogram (chart/normalize {"freq-length" freq-length})
-                 :filename "notes/figures/distribute-length.svg"
-                 :width 800 :height 600)
+(let [chart (chart/bar {:x-axis "frequency"
+                  :y-axis "weeks"
+                  :series [{:name "prglngth"
+                            :xs (sort (keys freq-length))
+                            :ys (map freq-length (sort (keys freq-length)) )}]})]
+  (store! chart nil "notes/figures/distribute-length.svg"))
 #+end_src
 
 #+RESULTS:
@@ -348,9 +374,12 @@ weeks.
 #+end_example
 
 #+begin_src clojure :results file :output-dir figures :file distribute-1st-baby.svg :exports both
-(chart/histogram (chart/normalize {"freq-1st" freq-1st})
-                 :filename "notes/figures/distribute-1st-baby.svg"
-                 :width 800 :height 600)
+(let [chart (chart/bar {:x-axis "frequency"
+                  :y-axis "weeks"
+                  :series [{:name "first"
+                            :xs (sort (keys freq-1st))
+                            :ys (map freq-1st (sort (keys freq-1st)))}]})]
+  (store! chart nil "notes/figures/distribute-1st-baby.svg"))
 #+end_src
 
 #+RESULTS:
@@ -429,8 +458,15 @@ weeks.
 Now, I need to write a plotting function to plot two hisograms.
 
 #+begin_src clojure :results file :output-dir figures :file first-other-compare.svg :exports both
-(chart/histogram (chart/normalize {"first" firsts "other" others})
-                 :filename "notes/figures/first-other-compare.svg")
+(let [chart (chart/bar {:x-axis "frequency"
+                  :y-axis "weeks"
+                  :series [{:name "first"
+                            :xs (sort (keys firsts))
+                            :ys (map firsts (sort (keys firsts)))}
+                           {:name "other"
+                            :xs (sort (keys others))
+                            :ys (map others (sort (keys others)))}]})]
+  (store! chart nil "notes/figures/first-other-compare.svg"))
 #+end_src
 
 #+RESULTS:

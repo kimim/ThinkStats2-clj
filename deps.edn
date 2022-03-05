@@ -1,8 +1,8 @@
-{:paths ["src"]
+{:paths ["src" "notes"]
  :aliases {:run
            {:main-opts ["-m" "thinkstats2.core"]}}
 
  :deps {org.clojure/clojure             {:mvn/version "1.10.3"}
         clj-http/clj-http               {:mvn/version "3.12.3"}
         scicloj/tablecloth              {:mvn/version "6.012"}
-        org.knowm.xchart/xchart         {:mvn/version "3.8.1"}}}
+        io.github.kimim/clj-chart       {:mvn/version "0.1.2"}}}

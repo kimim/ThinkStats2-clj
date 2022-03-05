@@ -1,0 +1,10 @@
+#+TITLE: ThinkStats2-clj
+#+latex_class: article
+#+options: H:4
+
+#+INCLUDE: "00_prepare_data.org" :minlevel 1
+#+INCLUDE: "01_exploratory_data_analysis.org" :minlevel 1
+#+INCLUDE: "02_distributions.org" :minlevel 1
+#+INCLUDE: "03_pmf.org" :minlevel 1
+#+INCLUDE: "04_cumulative_distribution_functions.org" :minlevel 1
+#+INCLUDE: "05_modeling_distributions.org" :minlevel 1
