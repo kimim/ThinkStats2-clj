@@ -53,18 +53,7 @@
         ;; make fill colour transparent
          (.setFillColor ss (Color. 0 0 0 0))))
      (VectorGraphicsEncoder/saveVectorGraphic
-      xy filename svg-format)))
-  ([{:keys [file series title width height]
-     :or {title "XY Chart" width 600 height 400}}]
-   (let [xy (XYChart. width height)]
-     (.setTitle xy title)
-     (.setDefaultSeriesRenderStyle (.getStyler xy) XYSeries$XYSeriesRenderStyle/Step)
-     (doseq [serie series]
-       (let [ss (.addSeries xy (first serie) (first (second serie))
-                            (second (second serie)))]
-         (.setMarker ss SeriesMarkers/NONE)))
-     (VectorGraphicsEncoder/saveVectorGraphic
-      xy file svg-format))))
+      xy filename svg-format))))
 
 (defn plot
   "Plot x y chart"

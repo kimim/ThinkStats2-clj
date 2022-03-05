@@ -3,19 +3,20 @@
 
 #+begin_src clojure :results silent :eval no-export
 (ns thinkstats2.probability-mass-functions
-  (:require [clj-http.client :as client]
-            [clojure.java.io :as io]
-            [clojure.string :as str]
-            [tech.v3.dataset :as ds]
+  (:require [tech.v3.dataset :as ds]
             [tech.v3.datatype.functional :as dfn]
             [tablecloth.api :as api]
+            [clj-chart.chart :as chart]
+            [clj-chart.plot :refer [store!]]
             [thinkstats2-clj.nsfg :as nsfg]
-            [thinkstats2-clj.chart :as chart]
-            [thinkstats2-clj.cdf :as cdf])
-  (:import java.util.zip.GZIPInputStream))
+            [thinkstats2-clj.pmf :as pmf]
+            [thinkstats2-clj.cdf :as cdf]))
 #+end_src
 
 * The limits of PMFs
+PMFs work well if the number of values is small. But as the number of
+values increases, the probability associated with each value gets
+smaller and the effect of random noise increases.
 
 Calculate the total weight of first and other babies:
 
@@ -61,8 +62,15 @@ Calculate the total weight of first and other babies:
 | #'thinkstats2.probability-mass-functions/others-wgt                  |
 
 #+begin_src clojure :results file :output-dir figures :file first-other-totalwgt-prob-histogram.svg :exports both :eval no-export
-(chart/histogram {"first" firsts-wgt "other" others-wgt}
-                 :filename "notes/figures/first-other-totalwgt-prob-histogram.svg")
+(let [chart (chart/line {:x-axis "weight(pounds)"
+                        :y-axis "probability"
+                        :series [{:name "first"
+                                  :xs (keys (sort firsts-wgt))
+                                  :ys (vals (sort firsts-wgt))}
+                                 {:name "other"
+                                  :xs (keys (sort others-wgt))
+                                  :ys (vals (sort others-wgt))}]})]
+  (store! chart nil "notes/figures/first-other-totalwgt-prob-histogram.svg"))
 #+end_src
 
 #+CAPTION: PMF of birth weights. This figure shows a limitation of PMFs: they are hard to compare visually.
@@ -79,14 +87,14 @@ to get the size of the bins right. If they are big enough to smooth
 out noise, they might also smooth out useful information.
 
 An alternative that avoids these problems is the cumulative
-distribution function (CDF)
+distribution function (CDF) (累积分布函数).
 
 * Percentiles
 
-*percentile rank* is the position of your raw score in the fraction of
-people who scored lower than you or the same. So if you are "in the
-90th percentile," you did as well as or better than 90% of the people
-who took the exam.
+*percentile rank* (百分等级) is the position of your raw score in the
+fraction of people who scored lower than you or the same. So if you
+are "in the 90th percentile," you did as well as or better than 90% of
+the people who took the exam.
 
 As an example, if the scores in the sequence were 55, 66, 77, 88 and
 99, and you got the 88, then your percentile rank would be ~100 * 4 / 5~
@@ -105,7 +113,8 @@ which is 80.
 :
 
 If you are given a percentile rank and you want to find the
-corresponding value, the result of this calculation is a *percentile*.
+corresponding value, the result of this calculation is a *percentile*
+(百分位数).
 
 #+begin_src clojure :results pp :exports both :eval no-export
 (defn percentile [scores percentile-rank]
@@ -157,16 +166,34 @@ This function is almost identical to ~percentile-rank~, except that the
 result is a probability in the range 0 - 1 rather than a percentile
 rank in the range 0 - 100.
 
+#+begin_src clojure :results pp :exports both :eval no-export
+(range (+ 1 (apply max samples)))
+#+end_src
+
+#+RESULTS:
+: (0 1 2 3 4 5)
+:
+#+begin_src clojure :results pp :exports both :eval no-export
+(map #(eval-cdf samples %) (range (+ 1 (apply max samples))))
+#+end_src
+
+#+RESULTS:
+: (0 1/5 3/5 4/5 4/5 1)
+:
+
 #+begin_src clojure :results file :output-dir figures :file example-of-a-cdf.svg :exports both :eval no-export
-(chart/step {:series {"cdf" [(sort samples) (map #(eval-cdf (sort samples) %) (sort samples))]}
-             :file "notes/figures/example-of-a-cdf.svg"})
+(let [xs (range (+ 2 (apply max samples)))
+      chart (chart/step {:x-axis "x"
+                         :y-axis "CDF"
+                         :series [{:name "cdf"
+                                   :xs xs
+                                   :ys (map #(eval-cdf samples %) xs)}]})]
+  (store! chart nil "notes/figures/example-of-a-cdf.svg"))
 #+end_src
 
 #+CAPTION: Example of a CDF
 #+RESULTS:
 [[file:figures/example-of-a-cdf.svg]]
-
-# TODO: step chart is not correct, if there is mising y data..
 
 #+begin_src clojure :results pp :exports both :eval no-export
 (zipmap samples (map #(eval-cdf samples %) samples))
@@ -218,9 +245,12 @@ lengths in the NSFG:
 #+end_src
 
 #+begin_src clojure :results file :output-dir figures :file cdf-of-preg-lng.svg :exports both :eval no-export
-(chart/step {:series {"prglngth" [live-prglngth (map #(cdf-prob live-prglngth %) live-prglngth)]}
-             :title "Pregnancy length"
-             :file "notes/figures/cdf-of-preg-lng.svg"})
+(let [chart (chart/step {:x-axis "weeks"
+                         :y-axis "CDF"
+                         :series [{:name "Pregnancy length"
+                                   :xs (range 0 (apply max live-prglngth))
+                                   :ys (map #(eval-cdf live-prglngth %) (range 0 (apply max live-prglngth)))}]})]
+  (store! chart nil "notes/figures/cdf-of-preg-lng.svg"))
 #+end_src
 
 #+CAPTION: CDF of pregnancy length
@@ -228,14 +258,12 @@ lengths in the NSFG:
 #+RESULTS:
 [[file:figures/cdf-of-preg-lng.svg]]
 
-# TODO: x axis label is to narrow!
-
 Figure [[cdf-of-preg-lng]] shows the result. One way to read a CDF is to
 look up percentiles. For example, it looks like about 10% of
 pregnancies are shorter than 36 weeks, and about 90% are shorter than
 41 weeks. The CDF also provides a visual representation of the shape
 of the distribution. Common values appear as steep or vertical
-selections of the CDF; in this example, the mode at 39 weeks is
+selections of the CDF; in this example, the *mode* (众数) at 39 weeks is
 apparent. There are few values below 30 weeks, so the CDF in this
 range is flat.
 
@@ -286,14 +314,18 @@ range is flat.
   (->> (others :totalwgt-lb) (sort)))
 #+end_src
 
-#+RESULTS:
-: class clojure.lang.Compiler$CompilerException
-
 #+begin_src clojure :results file :output-dir figures :file cdf-weight-first-other.svg :exports both :eval no-export
-(chart/step {:series {"first" [first-wgt (map #(cdf-prob first-wgt %) first-wgt)]
-                      "other" [other-wgt (map #(cdf-prob other-wgt %) other-wgt)]}
-             :title "Birth weight"
-             :file "notes/figures/cdf-weight-first-other.svg"})
+(let [chart (chart/step {:title "Birth weight"
+                         :x-axis "weeks"
+                         :y-axis "CDF"
+                         :series [{:name "first"
+                                   :xs (sort first-wgt)
+                                   :ys (map #(cdf-prob first-wgt %) (sort first-wgt))}
+                                  {:name "other"
+                                   :xs (sort other-wgt)
+                                   :ys (map #(cdf-prob other-wgt %) (sort other-wgt))}
+                                  ]})]
+  (store! chart nil "notes/figures/cdf-weight-first-other.svg"))
 #+end_src
 
 #+CAPTION: CDF of birth weights for first babies and others
@@ -359,8 +391,12 @@ There are also *quintiles* and *deciles*, all of them are *quantiles*.
 :
 
 #+begin_src clojure :results file :output-dir figures :file cdf-of-percentile-ranks-for-random-sample.svg :exports both :eval no-export
-(chart/step {:series {"percent ranks" [sample ranks]}
-             :file "notes/figures/cdf-of-percentile-ranks-for-random-sample.svg"})
+(let [chart (chart/step {:x-axis "percentile rank"
+                         :y-axis "CDF"
+                         :series [{:name "percent ranks"
+                                   :xs ranks
+                                   :ys (map #(cdf-prob ranks %) (sort ranks))}]})]
+  (store! chart nil "notes/figures/cdf-of-percentile-ranks-for-random-sample.svg"))
 #+end_src
 
 #+CAPTION: CDF of percentile ranks for a random sample of birth weights
@@ -402,7 +438,7 @@ Then you can get a random value like this:
 #+end_src
 
 #+RESULTS:
-: 6.0
+: 7.75
 :
 
 We can also define ~sample~ function, which takes an interger, n, and
@@ -425,5 +461,5 @@ Then you can do this:
 #+end_src
 
 #+RESULTS:
-: (8.375 4.625 6.3125 5.25 6.75 8.5 6.25 9.125 3.4375 7.75)
+: (7.0 6.5625 4.9375 8.4375 6.6875 5.125 6.5 5.9375 6.9375 5.125)
 :
