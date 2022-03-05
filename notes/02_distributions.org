@@ -1,29 +1,26 @@
 #+TITLE: Chapter 2 Distributions
 
-#+begin_src clojure :results silent
+#+begin_src clojure :results silent :eval no-export
 (ns thinkstats2.distributions
-  (:require [clj-http.client :as client]
-            [clojure.java.io :as io]
-            [clojure.string :as str]
-            [tech.v3.dataset :as ds]
+  (:require [tech.v3.dataset :as ds]
             [tech.v3.datatype.functional :as dfn]
             [tablecloth.api :as api]
             [clj-chart.chart :as chart]
             [clj-chart.plot :refer [store!]]
-            [thinkstats2-clj.nsfg :as nsfg])
-  (:import java.util.zip.GZIPInputStream))
+            [thinkstats2-clj.nsfg :as nsfg]))
 #+end_src
 
 * Histograms
 
-The *distribution* of a variable is the description of how many times the values
-appeared in the dataset. The most common presentation of distribution is
-*histogram*, which shows the *frequency* of each value.
+The *distribution* of a variable (变量的分布) is the description of how
+many times the values appeared in the dataset. The most common
+presentation of distribution is *histogram* (直方图), which shows the
+*frequency* (频数) of each value.
 
 In Clojure, the efficient way to compute frequency is with the ~frequencies~
 function. Given a sequence of values, t:
 
-#+begin_src clojure :results pp :exports both
+#+begin_src clojure :results pp :exports both :eval no-export
 (def t [1 1 2 2 2 3 3 3 3 4 5 5 6 7 7 8 8 8 9 9 9])
 (frequencies t)
 #+end_src
@@ -79,8 +76,9 @@ fallback replace value 0.
 
 * Plotting histograms
 
-XChart[fn:1] is a light weight Java library for plotting data. With a small
-clojure wrapper, we can easily draw charts:
+XChart [fn:1] is a light weight Java library for plotting
+data. ~clj-chart~ [fn:2] is a small clojure wrapper, we can use it to
+easily draw charts:
 
 #+begin_src clojure :results file :output-dir figures :file histogram.svg :exports both :eval no-export
 (let [chart (chart/bar {:title "Histogram Bar Chart"
@@ -95,17 +93,19 @@ clojure wrapper, we can easily draw charts:
 
 
 * NSFG variables
+Histogram of the pound part of birth weight.
 
 #+begin_src clojure :results pp :eval no-export
 (def fempreg-ds (nsfg/as-dataset "2002FemPreg.dct" "2002FemPreg.dat"))
-(def freq (-> fempreg-ds
+(def pound-part (-> fempreg-ds
               (ds/set-dataset-name "2002FemPreg")
               (ds/filter #(and (= 1 (:outcome %))
                                (some? (:birthwgt-lb %))
                                (< (:birthwgt-lb %) 20)))
               :birthwgt-lb
-              frequencies))
-(sort freq)
+              frequencies
+              sort))
+pound-part
 #+end_src
 
 #+RESULTS:
@@ -137,13 +137,15 @@ The distribution of ~birthwgt-lb~ is of the *normal* distribution, also called a
                   :x-axis "pounds"
                   :y-axis "frequency"
                   :series [{:name "birthwgt_lb"
-                            :xs (sort (keys freq))
-                            :ys (map freq (sort (keys freq)) )}]})]
+                            :xs (keys pound-part)
+                            :ys (vals pound-part)}]})]
   (store! chart nil "notes/figures/distribute-birthwgt.svg"))
 #+end_src
 
 #+RESULTS:
 [[file:figures/distribute-birthwgt.svg]]
+
+Histogram of the ounce part of birth weight.
 
 #+begin_src clojure :results pp :eval no-export
 (def freq-oz (-> fempreg-ds
@@ -193,10 +195,13 @@ Distribution of ~brithwgt-oz~ is expected to be *uniform*:
 #+RESULTS:
 [[file:figures/distribute-birthwgt-oz.svg]]
 
+The mother's age at the end of pregnancy:
+
 #+begin_src clojure :results pp :eval no-export
 (def freq-age (-> fempreg-ds
                   (ds/set-dataset-name "2002FemPreg")
                   (ds/filter #(and (= 1 (:outcome %))))
+                  ;; transformed agepreg from centiyears to years
                   (ds/update-columns [:agepreg] #(dfn// % 100))
                   :agepreg
                   frequencies))
@@ -243,7 +248,7 @@ Distribution of ~brithwgt-oz~ is expected to be *uniform*:
 
 #+end_example
 
-The mother's age at the end of pregnancy:
+Histogram of mother's age at end of pregnancy.
 
 #+begin_src clojure :results file :output-dir figures :file distribute-agepreg.svg :exports both :eval no-export
 (let [chart (chart/bar {:x-axis "frequency"
@@ -322,6 +327,8 @@ weeks.
 
 #+RESULTS:
 [[file:figures/distribute-length.svg]]
+
+Pregnancy length of first baby:
 
 #+begin_src clojure :results pp
 (def freq-1st (-> fempreg-ds
@@ -440,6 +447,8 @@ weeks.
 
 * First babies
 
+First and other babies:
+
 #+begin_src clojure :results none
 (def firsts (-> fempreg-ds
                 (ds/filter #(and (= 1 (:outcome %))
@@ -474,11 +483,11 @@ Now, I need to write a plotting function to plot two hisograms.
 
 * Summarizing distributions
 
-*Summary statistics* is used summarize the distribution with a few descriptive
-statistics.
+*Summary statistics* is used summarize the distribution with a few
+descriptive statistics.
 
-The most common summary statistic is the mean, which is meant to describe the
-central tendency of the distribution.
+The most common summary statistic is the *mean*, which is meant to
+describe the central tendency of the distribution.
 
 #+begin_export latex
 \begin{equation}
@@ -486,15 +495,16 @@ central tendency of the distribution.
 \end{equation}
 #+end_export
 
-- The “mean” of a sample is the summary statistic computed with the previous
-  formula.
-- An “average” is one of several summary statistics you might choose to describe
-  a central tendency.
+- The "mean" of a sample is the summary statistic computed with the
+  previous formula.
+- An "average" is one of several summary statistics you might choose
+  to describe a central tendency.
 
 * Variance
 
-*Variance* is a summary statistic intended to describe the variability or spread
-of a distribution. The variance of a set of values is
+*Variance* (方差) is a summary statistic intended to describe the
+variability or spread of a distribution. The variance of a set of
+values is
 
 #+begin_export latex
 \begin{equation}
@@ -502,9 +512,9 @@ S^2 = \frac{1}{n} \sum_i (x - \bar{x})^2
 \end{equation}
 #+end_export
 
-The term $x_i − \bar{x}$ is called the “deviation from the mean,” so variance is
-the mean squared deviation. The square root of variance, $S$, is the *standard
-deviation*.
+The term $x_i − \bar{x}$ is called the “deviation from the mean,” so
+variance is the mean squared deviation. The square root of variance,
+$S$, is the *standard deviation* (均方差/标准差).
 
 ~tech.ml.dataset~ provides ~brief~ function to calculate mean, skew and
 standard-deviation.
@@ -577,10 +587,10 @@ be common.
 
 * Effect Size
 
-An *effect size* is a summary statistic intended to describe the size of an
-effect. Cohen's d is a statistic intended to convey the size of the effect is to
-compare the difference between groups to the variability within groups; it is
-defined:
+An *effect size* (效应量) is a summary statistic intended to describe
+the size of an effect. Cohen's \(d\) is a statistic intended to convey
+the size of the effect is to compare the difference between groups to
+the variability within groups; it is defined:
 
 #+begin_export latex
 \begin{equation}
@@ -622,3 +632,5 @@ standard deviations.
 * Footnotes
 
 [fn:1] https://github.com/knowm/XChart
+
+[fn:2] https://github.com/kimim/clj-chart

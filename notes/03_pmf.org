@@ -3,25 +3,23 @@
 
 #+begin_src clojure :results silent
 (ns thinkstats2.pmfs
-  (:require [clj-http.client :as client]
-            [clojure.java.io :as io]
-            [clojure.string :as str]
-            [tech.v3.dataset :as ds]
+  (:require [tech.v3.dataset :as ds]
             [tech.v3.datatype.functional :as dfn]
             [tablecloth.api :as api]
-            [thinkstats2-clj.nsfg :as nsfg]
-            [thinkstats2-clj.chart :as chart])
-  (:import java.util.zip.GZIPInputStream))
+            [clj-chart.chart :as chart]
+            [clj-chart.plot :refer [store!]]
+            [thinkstats2-clj.nsfg :as nsfg]))
 #+end_src
 
 * Pmfs
 
-Another way to represent a distribution is a *probability mass function(PMF)*,
-which maps from each value to its probability.
+Another way to represent a distribution is a *probability mass
+function(PMF)* (概率质量函数), which maps from each value to its
+probability.
 
-A *probability* is a frequency expressed as a fraction of the sample size, $n$. To
-get from frequencies to probabilities, we divide through by $n$, which is called
-*normalization*.
+A *probability* (概率) is a frequency expressed as a fraction of the
+sample size, $n$. To get from frequencies to probabilities, we divide
+through by $n$, which is called *normalization* (归一化).
 
 We can map the division to each frequencies to get the probability:
 
@@ -46,7 +44,7 @@ We can define a function ~probabilities~ to get the result:
     (->> coll
          frequencies
          (map #(vec [(first %) (/ (second %) n)]))
-         (into {}))))
+         (into (sorted-map)))))
 
 (probabilities [1 2 2 3 5])
 #+end_src
@@ -104,7 +102,6 @@ Or you can multiply a probability by a factor:
 : 0.30000000000000004
 :
 
-
 Now the the result is not normalized; that is, the probabilities no longer add
 up to 1. To check, you can summarize the values:
 
@@ -156,16 +153,30 @@ We can plot PMFs in both bar graph and step graph.
 #+end_src
 
 #+begin_src clojure :results file :output-dir figures :file first-other-prob-histogram.svg :exports both
-(chart/histogram (chart/normalize {"first" firsts-pmf "other" others-pmf})
-                 :filename "notes/figures/first-other-prob-histogram.svg")
+(let [chart (chart/bar {:x-axis "probability"
+                        :y-axis "weeks"
+                        :series [{:name "first"
+                                  :xs (keys firsts-pmf)
+                                  :ys (vals firsts-pmf)}
+                                 {:name "other"
+                                  :xs (keys others-pmf)
+                                  :ys (vals others-pmf)}]})]
+  (store! chart nil "notes/figures/first-other-prob-histogram.svg"))
 #+end_src
 
 #+RESULTS:
 [[file:figures/first-other-prob-histogram.svg]]
 
 #+begin_src clojure :results file :output-dir figures :file first-other-prob-step.svg  :exports both
-(chart/step (chart/normalize {"first" firsts-pmf "other" others-pmf})
-                 :filename "notes/figures/first-other-prob-step.svg")
+(let [chart (chart/step {:x-axis "probability"
+                        :y-axis "weeks"
+                        :series [{:name "first"
+                                  :xs (keys firsts-pmf)
+                                  :ys (vals firsts-pmf)}
+                                 {:name "other"
+                                  :xs (keys others-pmf)
+                                  :ys (vals others-pmf)}]})]
+  (store! chart nil "notes/figures/first-other-prob-step.svg"))
 #+end_src
 
 #+RESULTS:
@@ -184,30 +195,34 @@ difference, as show in figure [[diffs]]:
 #+begin_src clojure :results pp :exports both
 (def weeks (range 35 46))
 (def diffs (->>  weeks
-                 (map #(vec [% (- (firsts-pmf %) (others-pmf %))]))
-                 (into {})))
+                 (map #(vec [% (* 100 (- (firsts-pmf %) (others-pmf %)))]))
+                 (into (sorted-map))))
 diffs
 #+end_src
 
 #+RESULTS:
 #+begin_example
-{39 -195797/2930625,
- 40 -24196/20514375,
- 36 154633/20514375,
- 41 138983/4102875,
- 43 141068/20514375,
- 44 7222/20514375,
- 35 80551/20514375,
- 45 10634/20514375,
- 38 -190217/20514375,
- 42 28208/1367625,
- 37 -105313/20514375}
+{35 322204/820575,
+ 36 618532/820575,
+ 37 -421252/820575,
+ 38 -760868/820575,
+ 39 -783188/117225,
+ 40 -96784/820575,
+ 41 555932/164115,
+ 42 112832/54705,
+ 43 564272/820575,
+ 44 28888/820575,
+ 45 42536/820575}
 
 #+end_example
 
 #+begin_src clojure :results file :output-dir figures :file weeks-diffs.svg  :exports both
-(chart/histogram (chart/normalize {"diffs" diffs})
-                 :filename "notes/figures/weeks-diffs.svg")
+(let [chart (chart/bar {:x-axis "probability"
+                         :y-axis "weeks"
+                         :series [{:name "first"
+                                   :xs (keys diffs)
+                                   :ys (vals diffs)}]})]
+  (store! chart nil "notes/figures/weeks-diffs.svg"))
 #+end_src
 
 #+name: diffs
@@ -246,6 +261,13 @@ Here is the code, mean value is:
 
 But if you survey a group of students, ask them how many students are in their
 classes, and compute the mean, you would think the average class was bigger:
+#+begin_src clojure :results pp :exports both :eval no-export
+prob2
+#+end_src
+
+#+RESULTS:
+: {1 1/5, 2 0.30000000000000004, 3 1/5, 5 1/5}
+:
 
 #+begin_src clojure :results pp :exports both
 (defn bias-pmf [pmf]
@@ -277,10 +299,15 @@ the biased distribution.
 Now we can plot the actual and observed distributions:
 
 #+begin_src clojure :results file :output-dir figures :file bias-pmf.svg :exports both
-(chart/step {"actual" (into (sorted-map) (normalize d))
-             "observed" (into (sorted-map) (bias-pmf d))}
-            :filename "notes/figures/bias-pmf.svg"
-            :title "Class size")
+(let [chart (chart/step {:x-axis "class size"
+                         :y-axis "PMF"
+                         :series [{:name "actual"
+                                   :xs (keys (sort (normalize d)))
+                                   :ys (vals (sort (normalize d)))}
+                                  {:name "observed"
+                                   :xs (keys (sort (bias-pmf d)))
+                                   :ys (vals (sort (bias-pmf d)))}]})]
+  (store! chart nil "notes/figures/bias-pmf.svg"))
 #+end_src
 
 #+RESULTS:
@@ -322,10 +349,16 @@ We can use the observed data and unbias the distribution:
 #+end_example
 
 #+begin_src clojure :results file :output-dir figures :file unbias-pmf.svg :exports both
-(chart/step {"actual" (into (sorted-map) (normalize d))
-             "observed" (into (sorted-map) (unbias-pmf d))}
-            :filename "notes/figures/unbias-pmf.svg"
-            :title "Class size")
+(let [chart (chart/step {:x-axis "class size"
+                         :y-axis "PMF"
+                         :series [{:name "actual"
+                                   :xs (keys (sort (normalize d)))
+                                   :ys (vals (sort (normalize d)))}
+                                  {:name "observed"
+                                   :xs (keys (sort (unbias-pmf d)))
+                                   :ys (vals (sort (unbias-pmf d)))}]})]
+  (store! chart nil "notes/figures/unbias-pmf.svg"))
+
 #+end_src
 
 #+RESULTS:
@@ -350,10 +383,10 @@ _unnamed [4 2]:
 
 |         :A |         :B |
 |-----------:|-----------:|
-| 0.47938961 | 0.37385218 |
-| 0.40270313 | 0.58809862 |
-| 0.09545149 | 0.15548529 |
-| 0.47019306 | 0.27325350 |
+| 0.55511122 | 0.88273721 |
+| 0.20338563 | 0.43759448 |
+| 0.46132010 | 0.02766257 |
+| 0.40113266 | 0.02935610 |
 
 
 #+end_example
@@ -371,10 +404,10 @@ _unnamed [4 1]:
 
 |         :B |
 |-----------:|
-| 0.37385218 |
-| 0.58809862 |
-| 0.15548529 |
-| 0.27325350 |
+| 0.88273721 |
+| 0.43759448 |
+| 0.02766257 |
+| 0.02935610 |
 
 
 #+end_example
@@ -390,8 +423,8 @@ select two rows:
 :
 : |         :A |         :B |
 : |-----------:|-----------:|
-: | 0.09545149 | 0.15548529 |
-: | 0.47019306 | 0.27325350 |
+: | 0.46132010 | 0.02766257 |
+: | 0.40113266 | 0.02935610 |
 :
 :
 
@@ -406,8 +439,8 @@ and select both columns and rows:
 :
 : |         :B |
 : |-----------:|
-: | 0.37385218 |
-: | 0.27325350 |
+: | 0.88273721 |
+: | 0.02935610 |
 :
 :
 
@@ -423,10 +456,10 @@ _unnamed [4 1]:
 
 |         :B |
 |-----------:|
-| 0.37385218 |
-| 0.58809862 |
-| 0.15548529 |
-| 0.27325350 |
+| 0.88273721 |
+| 0.43759448 |
+| 0.02766257 |
+| 0.02935610 |
 
 
 #+end_example
@@ -440,9 +473,9 @@ _unnamed [4 1]:
 :
 : |         :A |         :B |
 : |-----------:|-----------:|
-: | 0.40270313 | 0.58809862 |
-: | 0.09545149 | 0.15548529 |
-: | 0.47019306 | 0.27325350 |
+: | 0.20338563 | 0.43759448 |
+: | 0.46132010 | 0.02766257 |
+: | 0.40113266 | 0.02935610 |
 :
 :
 
@@ -456,5 +489,5 @@ object:
 #+RESULTS:
 : #tech.v3.dataset.column<float64>[4]
 : :A
-: [0.4794, 0.4027, 0.09545, 0.4702]
+: [0.5551, 0.2034, 0.4613, 0.4011]
 :
