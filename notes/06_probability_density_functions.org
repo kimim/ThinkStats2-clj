@@ -1,0 +1,38 @@
+#+TITLE: Chapter 5 Probability density functions
+#+LATEX_CLASS: article
+
+* PDFs
+
+The derivative of a CDF is called a *probability density function* (概率
+密度函数), or PDF. For example, the PDF of an exponential distribution is
+
+#+name: eq:pdf-expo
+\begin{equation}
+PDF_{expo}(x) = \lambda e^{-\lambda x}
+\end{equation}
+
+The PDF of a normal distribution is
+
+#+name: eq:pdf-normal
+\begin{equation}
+PDF_{normal}(x) = \frac{1}{\sigma \sqrt{2\pi}} [- \frac{1}{2}(\frac{x-\mu}{\sigma})^2]
+\end{equation}
+
+*probability density* (概率密度) measures probability per unit of x. In
+order to get a probability mass, you have to integrate over x.
+
+* Kernel density estimation
+*Kernel density estimation* (KDE) (核密度估计) is an algorithm that
+takes a sample and finds an appropriately smooth PDF that fits the
+data.
+
+* The distribution framework
+PMF (概率质量函数) represent the probabilities for a discrete set of
+values. To get from a PMF to a CMF (累积质量函数), you add up the
+probability masses to get cumulative probabilities. To get from a CDF
+back to a PMF, you compute differences in cumulative probabilities.
+
+A PDF (概率密度函数) is the derivative of a continuous CDF (累积分布函
+数); or, equivalently, a CDF is the integral of a PDF. Remember that a
+PDF maps from values to probability densities; to get a probability,
+you have to integrate.

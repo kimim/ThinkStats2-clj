@@ -2,27 +2,27 @@
 #+LATEX_CLASS: article
 
 The distributions we have used so far are called *empirical
-distributions* because they are based on empirical observations, which
-are necessarily finite samples.
+distributions* (经验分布) because they are based on empirical
+observations, which are necessarily finite samples.
 
-The alternative is an *analytic distribution*, which is characterized by
-a CDF that is a mathematical function. Analytic distributions can be
-used to model empirical distributions. In this context, a *model* is a
-simplification that leaves out unneeded details.
+The alternative is an *analytic distribution* (解析分布), which is
+characterized by a CDF that is a mathematical function. Analytic
+distributions can be used to model empirical distributions. In this
+context, a *model* (模型) is a simplification that leaves out unneeded
+details.
 
 #+begin_src clojure :results silent :eval no-export
 (ns thinkstats2.modeling-distributions
-  (:require [clj-http.client :as client]
-            [clojure.java.io :as io]
-            [clojure.string :as str]
+  (:require [clojure.string :as str]
             [tech.v3.dataset :as ds]
             [tech.v3.datatype.functional :as dfn]
             [tablecloth.api :as tablecloth]
+            [clj-chart.chart :as chart]
+            [clj-chart.plot :as plot]
+            [clj-djl.ndarray :as nd]
             [thinkstats2-clj.nsfg :as nsfg]
-            [thinkstats2-clj.chart :as chart]
             [thinkstats2-clj.cdf :as cdf]
-            [thinkstats2-clj.data :as data])
-  (:import java.util.zip.GZIPInputStream))
+            [thinkstats2-clj.data :as data]))
 #+end_src
 
 * The exponential distribution
@@ -37,16 +37,26 @@ The parameter, $\lambda$, determines the shape of the distribution.
 
 #+begin_src clojure :results file graphics :output-dir figures :file exp-distribution.svg :exports both :eval no-export
 (def xs (range 0 3 1/10))
-(chart/plot {:file "notes/figures/exp-distribution.svg"
-             :title "Exponential CDF"
-             :series {"λ=0.5" [xs (map #(- 1 (Math/exp (- (* % 0.5)))) xs)]
-                      "λ=1.0" [xs (map #(- 1 (Math/exp (- (* % 1.0)))) xs)]
-                      "λ=2.0" [xs (map #(- 1 (Math/exp (- (* % 2.0)))) xs)]}})
+(let [chart (chart/line {:title "Exponential CDF"
+                         :x-axis "x"
+                         :y-axis "CDF"
+                         :marker-size 0
+                         :series [{:name "λ=0.5"
+                                   :xs xs
+                                   :ys (map #(- 1 (Math/exp (- (* % 0.5)))) xs)}
+                                  {:name "λ=1"
+                                   :xs xs
+                                   :ys (map #(- 1 (Math/exp (- (* % 1)))) xs)}
+                                  {:name "λ=2"
+                                   :xs xs
+                                   :ys (map #(- 1 (Math/exp (- (* % 2)))) xs)}]})]
+  (plot/store! chart nil "notes/figures/exp-distribution.svg"))
 #+end_src
 
 #+CAPTION: CDFs of exponential distributions with various parameters.
 #+RESULTS:
 [[file:figures/exp-distribution.svg]]
+
 
 In the real world, exponential distributions come up when we look at a
 series of events and measure the times between events, called
@@ -67,6 +77,25 @@ Then, extract the dataset from the data:
                                             :header-row? false
                                             :n-initial-skip-rows 59}))
 
+(ds/head babyboom)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+babyboom.dat [5 1]:
+
+|                     column-0 |
+|------------------------------|
+| 0005       1    3837       5 |
+| 0104       1    3334      64 |
+| 0118       2    3554      78 |
+| 0155       2    3838     115 |
+| 0257       2    3625     177 |
+
+
+#+end_example
+
+#+begin_src clojure :results pp :exports both :eval no-export
 (def babyboom (tablecloth/separate-column babyboom "column-0"
                                           [:time :sex :weight :minutes]
                                           (fn [row]
@@ -99,18 +128,20 @@ _unnamed [5 4]:
                   (map #(- (second %) (first %)))
                   (sort)))
 
-(chart/step {:series {"CDF" [samples (cdf/cdf samples)]}
-             :title "Interarrival times"
-             :file "notes/figures/cdf-of-interarrival-times.svg"})
+(let [chart (chart/step {:title "Hello Step Chart"
+                         :series [{:name "CDF"
+                                   :xs samples
+                                   :ys (cdf/cdf samples)}]})]
+  (plot/store! chart nil "notes/figures/cdf-of-interarrival-times.svg"))
 #+end_src
 
 #+RESULTS:
 [[file:figures/cdf-of-interarrival-times.svg]]
 
 
-One way is to plot the *complementary CDF*, which is $1-CDF(x)$, on a
-log-y scale. FOr data from an exponential distribution, the result is
-a straight line.
+One way is to plot the *complementary CDF* (互补累积分布函数), which is
+$1-CDF(x)$, on a log-y scale. For data from an exponential
+distribution, the result is a straight line.
 
 If you plot the complementary CDF(CCDF) of a dataset that you think is
 exponential, you expect to see a function like:
@@ -127,10 +158,12 @@ log y \approx -\lambda x
 
 
 #+begin_src clojure :results file graphics :output-dir figures :file cdf-of-interarrival-log-y-scale.svg :exports both :eval no-export
-(chart/step {:series {"CCDF" [samples (map #(Math/log (- 1.1 %)) (cdf/cdf
-                                                                 samples))]}
-             :title "Interarrival time log-y"
-             :file "notes/figures/cdf-of-interarrival-log-y-scale.svg"})
+(let [chart (chart/step {:title "Interarrival time log-y"
+                         :series [{:name "CCDF"
+                                   :xs samples
+                                   :ys (map #(Math/log (- 1.1 %)) (cdf/cdf
+                                                                   samples))}]})]
+  (plot/store! chart nil "notes/figures/cdf-of-interarrival-log-y-scale.svg"))
 #+end_src
 
 #+RESULTS:
@@ -144,9 +177,192 @@ time between births is 32.7 minutes.
 
 * The normal distribution
 
-The *normal distribution*, also called *Gaussian*, is commonly used
-because it describes many phenomena, at least approximately.
+The *normal distribution* (正态分布), also called *Gaussian distribution*
+(高斯分布), is commonly used because it describes many phenomena, at
+least approximately.
 
 The normal distribution is characterized by two parameters: the mean,
 μ, and standard deviation δ. The normal distribution with μ = 0 and δ
-= 1 is called the *standard normal distribution*.
+= 1 is called the *standard normal distribution* (标准正态分布).
+
+#+begin_src clojure :results file graphics :output-dir figures :file gaussian-distribution.svg :exports both :eval no-export
+(defn norm [x mu sigma]
+  (*
+   (/ 1.0 (* (Math/sqrt Math/PI) sigma))
+   (Math/exp
+    (-
+     (/ (Math/pow (- x mu) 2)
+        (* 2 sigma sigma))))))
+
+(defn cdf [sample]
+  (let [sum (reduce + sample)
+        cumul (fn [n]
+                (/ (reduce + (take n sample))
+                   sum))]
+    (map #(cumul %) (range (count sample)))))
+
+(def xs (range -1 5 1/10))
+
+(let [chart (chart/line {:title "Gaussian CDF"
+                         :x-axis "x"
+                         :y-axis "CDF"
+                         :marker-size 0
+                         :series [{:name "mu=1, sigma=0.5"
+                                   :xs xs
+                                   :ys (cdf (map #(norm % 1 0.5) xs))}
+                                  {:name "mu=2, sigma=0.4"
+                                   :xs xs
+                                   :ys (cdf (map #(norm % 2 0.4) xs))}
+                                  {:name "mu=3, sigma=0.3"
+                                   :xs xs
+                                   :ys (cdf (map #(norm % 3 0.3) xs))}]})]
+  (plot/store! chart nil "notes/figures/gaussian-distribution.svg"))
+#+end_src
+
+#+RESULTS:
+[[file:figures/gaussian-distribution.svg]]
+
+#+begin_src clojure :results value :eval no-export
+(def fempreg-ds (nsfg/as-dataset "2002FemPreg.dct" "2002FemPreg.dat"))
+(def fempreg-ds-with-totalwgt_lb
+  (let [fempreg-ds-drop-special-wgt
+        (-> fempreg-ds
+            (ds/filter #(not
+                         (or
+                          (contains? #{97 98 99} (:birthwgt-lb %))
+                          (contains? #{97 98 99} (:birthwgt-oz %))))))]
+    (ds/add-or-update-column
+     fempreg-ds-drop-special-wgt
+     :totalwgt-lb
+     (dfn/+
+      (fempreg-ds-drop-special-wgt :birthwgt-lb)
+      (dfn//
+       (fempreg-ds-drop-special-wgt :birthwgt-oz)
+       16.)))))
+
+(def birth-wgt (-> fempreg-ds-with-totalwgt_lb
+                    (ds/filter #(and (= 1 (:outcome %))
+                                     (some? (:totalwgt-lb %))
+                                     (<= (:totalwgt-lb %) 16)))
+                    :totalwgt-lb
+                    nsfg/probabilities
+                    sort))
+#+end_src
+
+#+RESULTS:
+| #'thinkstats2.modeling-distributions/fempreg-ds                  |
+| #'thinkstats2.modeling-distributions/fempreg-ds-with-totalwgt_lb |
+| #'thinkstats2.modeling-distributions/birth-wgt                   |
+
+#+begin_src clojure :results file graphics :output-dir figures :file birth-wgt-distribution.svg :exports both :eval no-export
+(def xs (range 0 16 1/10))
+(let [chart (chart/line {:title "Gaussian CDF"
+                         :x-axis "x"
+                         :y-axis "CDF"
+                         :marker-size 0
+                         :series [{:name "model"
+                                   :xs xs
+                                   :ys (cdf (map #(norm % 7.28 1.24) xs))}
+                                  {:name "data"
+                                   :xs (keys birth-wgt)
+                                   :ys (cdf (vals birth-wgt))}]})]
+  (plot/store! chart nil "notes/figures/birth-wgt-distribution.svg"))
+#+end_src
+
+#+RESULTS:
+[[file:figures/birth-wgt-distribution.svg]]
+
+* Normal probability plot
+
+For the normal distribution there is no such transformation, but there
+is an alternative called a normal probability plot. There are two ways
+to generate a normal probability plot: the hard way and the easy
+way. If you are interested in the hard way, you can read about it at
+https://en.wikipedia.org/wiki/Normal_probability_plot. Here’s the easy
+way:
+1. Sort the values in the sample.
+2. From a standard normal distribution (µ = 0 and σ = 1), generate a
+   random sample with the same size as the sample, and sort it.
+3. Plot the sorted values from the sample versus the random values.
+
+#+begin_src clojure :results pp :exports both :eval no-export
+;; Sort the values in the sample.
+(def birth-wgt (-> fempreg-ds-with-totalwgt_lb
+                    (ds/filter #(and (= 1 (:outcome %))
+                                     (some? (:totalwgt-lb %))
+                                     (<= (:totalwgt-lb %) 16)))
+                    :totalwgt-lb
+                    sort))
+#+end_src
+
+#+begin_src clojure :results pp :exports both :eval no-export
+;; From a standard normal distribution (µ = 0 and σ = 1), generate a
+;; random sample with the same size as the sample, and sort it.
+(def ndm (nd/base-manager))
+(def sample-count (count birth-wgt))
+(def standard-normal-sample (sort (nd/to-vec (nd/random-normal ndm 0 1 [sample-count]))))
+#+end_src
+
+#+begin_src clojure :results file graphics :output-dir figures :file normal-probability-plot.svg :exports both :eval no-export
+;; Plot the sorted values from the sample versus the random values.
+(let [chart (chart/line {:title "Normal probability plot"
+                         :x-axis "standard normal sample"
+                         :y-axis "sample values"
+                         :marker-size 0
+                         :series [{:name "mu=0, sigma=1"
+                                   :xs standard-normal-sample
+                                   :ys birth-wgt}]})]
+  (plot/store! chart nil "notes/figures/normal-probability-plot.svg"))
+#+end_src
+
+#+RESULTS:
+[[file:figures/normal-probability-plot.svg]]
+
+If the distribution of the sample is approximately normal, the result
+is a straight line with intercept mu and slope sigma.
+
+* The lognormal distribution
+
+If the logarithms of a set of values have a normal distribution, the
+values have a *lognormal distribution* (对数正态分布). The CDF of the
+lognormal distribution is the same as the CDF of the normal
+distribution, with log x substituted for x.
+
+#+name: eq:lognormal-distribution
+\begin{equation}
+CDF_{lognormal}(x) = CDF_{normal}(log x)
+\end{equation}
+
+
+#+begin_src clojure :results file graphics :output-dir figures :file lognormal-probability-plot.svg :exports both :eval no-export
+;; Sort the values in the sample.
+(def birth-wgt (-> fempreg-ds-with-totalwgt_lb
+                    (ds/filter #(and (= 1 (:outcome %))
+                                     (some? (:totalwgt-lb %))
+                                     (<= (:totalwgt-lb %) 16)))
+                    :totalwgt-lb
+                    sort))
+
+;; From a standard normal distribution (µ = 0 and σ = 1), generate a
+;; random sample with the same size as the sample, and sort it.
+(def ndm (nd/base-manager))
+(def sample-count (count birth-wgt))
+(def standard-normal-sample (sort (nd/to-vec (nd/random-normal ndm 0 1 [sample-count]))))
+
+;; Plot the sorted values from the sample versus the random values.
+(let [chart (chart/line {:title "Normal probability plot"
+                         :x-axis "standard normal sample"
+                         :y-axis "sample values"
+                         :marker-size 0
+                         :series [{:name "mu=0, sigma=1"
+                                   :xs (map #(Math/log %) standard-normal-sample)
+                                   :ys birth-wgt}]})]
+  (plot/store! chart nil "notes/figures/lognormal-probability-plot.svg"))
+#+end_src
+
+#+RESULTS:
+[[file:figures/lognormal-probability-plot.svg]]
+
+# TODO: different with Figure 5.8!
+
+* The Pareto distribution

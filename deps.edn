@@ -5,4 +5,5 @@
  :deps {org.clojure/clojure             {:mvn/version "1.10.3"}
         clj-http/clj-http               {:mvn/version "3.12.3"}
         scicloj/tablecloth              {:mvn/version "6.012"}
-        io.github.kimim/clj-chart       {:mvn/version "0.1.4"}}}
+        io.github.kimim/clj-chart       {:mvn/version "0.1.6"}
+        clj-djl/clj-djl                 {:mvn/version "0.1.8"}}}

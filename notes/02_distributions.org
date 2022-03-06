@@ -81,10 +81,9 @@ data. ~clj-chart~ [fn:2] is a small clojure wrapper, we can use it to
 easily draw charts:
 
 #+begin_src clojure :results file :output-dir figures :file histogram.svg :exports both :eval no-export
-(let [chart (chart/bar {:title "Histogram Bar Chart"
-                      :series [{:name "Histogram"
-                                :xs (keys hist)
-                                :ys (vals hist)}]})]
+(let [chart (chart/histogram {:title "Histogram Chart"
+                              :bins 6 :min 0 :max 6
+                              :series {"Histogram" (vals hist)}})]
   (store! chart nil "notes/figures/histogram.svg"))
 #+end_src
 
@@ -134,11 +133,11 @@ The distribution of ~birthwgt-lb~ is of the *normal* distribution, also called a
 
 #+begin_src clojure :results file :output-dir figures :file distribute-birthwgt.svg :exports both :eval no-export
 (let [chart (chart/bar {:title "Histogram Bar Chart"
-                  :x-axis "pounds"
-                  :y-axis "frequency"
-                  :series [{:name "birthwgt_lb"
-                            :xs (keys pound-part)
-                            :ys (vals pound-part)}]})]
+                        :x-axis "pounds"
+                        :y-axis "frequency"
+                        :series [{:name "birthwgt_lb"
+                                  :xs (keys pound-part)
+                                  :ys (vals pound-part)}]})]
   (store! chart nil "notes/figures/distribute-birthwgt.svg"))
 #+end_src
 

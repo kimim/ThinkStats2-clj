@@ -62,7 +62,7 @@ Calculate the total weight of first and other babies:
 | #'thinkstats2.probability-mass-functions/others-wgt                  |
 
 #+begin_src clojure :results file :output-dir figures :file first-other-totalwgt-prob-histogram.svg :exports both :eval no-export
-(let [chart (chart/line {:x-axis "weight(pounds)"
+(let [chart (chart/bar {:x-axis "weight(pounds)"
                         :y-axis "probability"
                         :series [{:name "first"
                                   :xs (keys (sort firsts-wgt))
@@ -134,8 +134,8 @@ and computes the corresponding value.
 
 * CDFs
 
-*cumulative distribution function* (CDF) is the function that maps from
-a value to its percentile rank.
+*cumulative distribution function* (CDF) (累积分布函数) is the function
+that maps from a value to its percentile rank.
 
 #+begin_src clojure :results pp :exports both :eval no-export
 (defn eval-cdf [sample x]
@@ -438,7 +438,7 @@ Then you can get a random value like this:
 #+end_src
 
 #+RESULTS:
-: 7.75
+: 8.0
 :
 
 We can also define ~sample~ function, which takes an interger, n, and
@@ -461,5 +461,5 @@ Then you can do this:
 #+end_src
 
 #+RESULTS:
-: (7.0 6.5625 4.9375 8.4375 6.6875 5.125 6.5 5.9375 6.9375 5.125)
+: (5.25 7.375 8.0 6.4375 7.125 5.9375 6.6875 7.9375 7.6875 6.8125)
 :
